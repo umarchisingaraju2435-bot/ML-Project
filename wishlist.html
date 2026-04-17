@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}My Wishlist{% endblock %}
+{% block content %}
+<div class="page-header">
+  <button onclick="history.back()" class="btn btn-outline btn-sm">← Back</button>
+  <h2>❤️ My Wishlist</h2>
+  <span class="muted">{{ products|length }} item{{ 's' if products|length != 1 else '' }}</span>
+</div>
+
+{% if products %}
+
+<!-- WISHLIST GRID -->
+<div class="wishlist-grid">
+{% for p in products %}
+<div class="wishlist-card">
+
+  <!-- REMOVE BUTTON -->
+  <a href="{{ url_for('wishlist_toggle', product_id=p.id) }}"
+     class="wishlist-remove" title="Remove from wishlist"
+     onclick="return confirm('Remove from wishlist?')">✕</a>
+
+  <!-- DISCOUNT BADGE -->
+  {% if p.get('discount',0) > 0 %}
+  <div class="shop-discount-badge">{{ p.discount }}% OFF</div>
+  {% endif %}
+
+  <!-- PRODUCT IMAGE -->
+  <a href="{{ url_for('shop_product', product_id=p.id) }}" class="wishlist-img">
+    <span class="wishlist-icon">{{ p.image }}</span>
+  </a>
+
+  <!-- PRODUCT INFO -->
+  <div class="wishlist-body">
+    <a href="{{ url_for('shop_product', product_id=p.id) }}" class="wishlist-name">{{ p.name }}</a>
+
+    <!-- SELLER -->
+    {% set seller = users_db|selectattr('id','eq',p.seller_id)|first %}
+    {% if seller %}
+    <a href="{{ url_for('shop_seller', seller_id=p.seller_id) }}" class="seller-link">
+      {{ seller.avatar }} {{ seller.get('shop_name', seller.name) }}
+    </a>
+    {% endif %}
+
+    <!-- RATING -->
+    <div class="wishlist-rating">
+      {% for i in range(p.get('rating',0)|int) %}⭐{% endfor %}
+      <span class="muted small">({{ p.get('review_count',0) }})</span>
+    </div>
+
+    <!-- PRICE -->
+    <div class="wishlist-price">
+      {% if p.get('discount',0) > 0 %}
+      <span class="original-price">${{ p.price }}</span>
+      <span class="discounted-price">${{ (p.price*(1-p.discount/100))|round(2) }}</span>
+      <span class="save-tag">You save ${{ (p.price*p.discount/100)|round(2) }}</span>
+      {% else %}
+      <span class="discounted-price">${{ p.price }}</span>
+      {% endif %}
+    </div>
+
+    <!-- STOCK STATUS -->
+    {% if p.stock == 0 %}
+    <div class="out-of-stock">❌ Out of Stock</div>
+    {% elif p.stock < 5 %}
+    <div class="low-stock-warn">⚠️ Only {{ p.stock }} left!</div>
+    {% else %}
+    <div class="in-stock-tag">✅ In Stock</div>
+    {% endif %}
+
+    <!-- ACTION BUTTONS -->
+    <div class="wishlist-actions">
+      {% if p.stock > 0 %}
+      <a href="{{ url_for('cart_add', product_id=p.id) }}" class="btn btn-primary btn-full">
+        🛒 Add to Cart
+      </a>
+      <a href="{{ url_for('checkout', product_id=p.id) }}" class="btn btn-outline btn-full mt">
+        ⚡ Buy Now
+      </a>
+      {% else %}
+      <button class="btn btn-outline btn-full" disabled style="opacity:.5;cursor:not-allowed">
+        ❌ Out of Stock
+      </button>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endfor %}
+</div>
+
+<!-- SUMMARY BAR -->
+<div class="wishlist-summary">
+  <div class="ws-info">
+    <span>❤️ {{ products|length }} items in wishlist</span>
+    {% set in_stock = products|selectattr('stock','gt',0)|list %}
+    <span class="muted">· {{ in_stock|length }} available to buy</span>
+  </div>
+  <div class="ws-actions">
+    {% set in_stock_ids = products|selectattr('stock','gt',0)|map(attribute='id')|list %}
+    {% if in_stock_ids %}
+    <a href="{{ url_for('shop') }}" class="btn btn-outline">← Continue Shopping</a>
+    {% endif %}
+  </div>
+</div>
+
+{% else %}
+<!-- EMPTY WISHLIST -->
+<div class="empty-wishlist">
+  <div class="empty-wish-icon">🤍</div>
+  <h3>Your wishlist is empty</h3>
+  <p class="muted">Save items you love by clicking the ❤️ heart button on any product.</p>
+  <a href="{{ url_for('shop') }}" class="btn btn-primary mt">🛒 Browse Products</a>
+
+  <!-- SUGGESTED PRODUCTS -->
+  <div class="suggested-section">
+    <h4>✨ You might like these</h4>
+    <div class="suggested-grid">
+    {% for p in products_db[:6] %}
+    <a href="{{ url_for('shop_product', product_id=p.id) }}" class="suggested-card">
+      <span class="suggested-icon">{{ p.image }}</span>
+      <div class="suggested-name">{{ p.name[:25] }}</div>
+      <div class="suggested-price">${{ p.price }}</div>
+      <a href="{{ url_for('wishlist_toggle', product_id=p.id) }}" class="wish-add-btn">🤍 Wishlist</a>
+    </a>
+    {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

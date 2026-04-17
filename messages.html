@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Messages{% endblock %}
+{% block content %}
+<div class="page-header">
+  <button onclick="history.back()" class="btn btn-outline btn-sm">← Back</button>
+  <h2>💬 Messages</h2>
+</div>
+
+{% if contacts %}
+<div class="contacts-list">
+{% for c in contacts %}
+<a href="{{ url_for('seller_chat', customer_id=c.user.id) }}" class="contact-card">
+  <div class="contact-avatar">{{ c.user.avatar }}</div>
+  <div class="contact-info">
+    <strong>{{ c.user.name }}</strong>
+    {% if c.last_msg %}
+    <p class="muted small">{{ c.last_msg.text[:50] }}...</p>
+    <span class="muted small">{{ c.last_msg.time }}</span>
+    {% endif %}
+  </div>
+  <span class="btn btn-sm btn-primary">Reply →</span>
+</a>
+{% endfor %}
+</div>
+{% else %}
+<div class="empty-state">No messages yet.</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Chat{% endblock %}
+{% block content %}
+<div class="page-header">
+  <button onclick="history.back()" class="btn btn-outline btn-sm">← Back</button>
+  <h2>💬 Chat with {{ seller.get('shop_name', seller.name) }}</h2>
+</div>
+
+<div class="chat-page-layout">
+  <div class="chat-messages" id="chatMessages">
+    {% if not msgs %}
+    <div class="chat-empty">
+      <p>👋 Start a conversation with {{ seller.name }}</p>
+    </div>
+    {% endif %}
+    {% for m in msgs %}
+    <div class="chat-bubble {{ 'mine' if m.sender_id == session.get('user_id') else 'theirs' }}">
+      <div class="bubble-name">{{ m.sender }}</div>
+      <div class="bubble-text">{{ m.text }}</div>
+      <div class="bubble-time">{{ m.time }}</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <form method="POST" class="chat-send-form">
+    <input type="text" name="message" placeholder="Type a message..." autocomplete="off" required autofocus>
+    <button type="submit" class="btn btn-primary">Send ➤</button>
+  </form>
+</div>
+
+<script>
+// Auto scroll to bottom
+var el = document.getElementById('chatMessages');
+if(el) el.scrollTop = el.scrollHeight;
+// Auto refresh every 5 seconds
+setTimeout(() => location.reload(), 5000);
+</script>
+{% endblock %}

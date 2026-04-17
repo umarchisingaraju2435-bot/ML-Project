@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}{{ tr('register') }}{% endblock %}
+{% block content %}
+<div class="auth-wrap">
+  <div class="auth-card">
+    <h2>✨ {{ tr('register') }}</h2>
+    <form method="POST">
+      <div class="form-group">
+        <label>{{ tr('name') }}</label>
+        <input type="text" name="name" required placeholder="Your full name">
+      </div>
+      <div class="form-group">
+        <label>{{ tr('email') }}</label>
+        <input type="email" name="email" required placeholder="you@example.com">
+      </div>
+      <div class="form-group">
+        <label>{{ tr('password') }}</label>
+        <input type="password" name="password" required placeholder="••••••••">
+      </div>
+      <div class="form-group">
+        <label>{{ tr('choose_role') }}</label>
+        <div class="role-select-grid">
+          <label class="role-option">
+            <input type="radio" name="role" value="seller" required>
+            <div class="role-opt-card">🏪<br>{{ tr('role_seller') }}</div>
+          </label>
+          <label class="role-option">
+            <input type="radio" name="role" value="customer">
+            <div class="role-opt-card">👤<br>{{ tr('role_customer') }}</div>
+          </label>
+          <label class="role-option">
+            <input type="radio" name="role" value="owner">
+            <div class="role-opt-card">🌐<br>{{ tr('role_owner') }}</div>
+          </label>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-full">{{ tr('register') }}</button>
+    </form>
+    <p class="auth-link">Already have account? <a href="{{ url_for('login') }}">{{ tr('login') }}</a></p>
+  </div>
+</div>
+{% endblock %}

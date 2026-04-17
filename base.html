@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}" dir="{{ dir }}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}IntelliMarket AI{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body class="role-{{ current_role or 'guest' }}">
+
+<nav class="navbar">
+  <a class="nav-brand" href="{{ url_for('index') }}">🤖 IntelliMarket AI</a>
+
+  <div class="nav-center">
+    <!-- ALWAYS VISIBLE -->
+    <a href="{{ url_for('shop') }}" class="nav-shop-btn">🛒 Shop</a>
+
+    {% if current_role == 'seller' %}
+      <a href="{{ url_for('dashboard') }}">🏠 Home</a>
+      <a href="{{ url_for('seller_products') }}">📦 Products</a>
+      <a href="{{ url_for('seller_reviews') }}">🧠 Reviews</a>
+      <a href="{{ url_for('seller_fake_reviews') }}">🚨 Fake Check</a>
+      <a href="{{ url_for('seller_market') }}">📊 Market</a>
+      <a href="{{ url_for('seller_competitor') }}">🏆 Competitor</a>
+      <a href="{{ url_for('seller_stocks') }}">📈 Stocks</a>
+      <a href="{{ url_for('seller_jobs') }}">💼 Jobs</a>
+      <a href="{{ url_for('seller_chatbot') }}">🤖 AI Chat</a>
+      <a href="{{ url_for('seller_messages') }}">💬 Messages</a>
+      <a href="{{ url_for('seller_load_products') }}">🚀 Load 100 Products</a>
+
+    {% elif current_role == 'customer' %}
+      <a href="{{ url_for('dashboard') }}">🏠 Home</a>
+      <a href="{{ url_for('shop') }}">🛒 Shop</a>
+      <a href="{{ url_for('cart_page') }}" class="nav-cart-btn">
+        🛒 Cart
+        {% if session.get('cart') and session.get('cart')|length > 0 %}
+        <span class="cart-count">{{ session.get('cart',{})|length }}</span>
+        {% endif %}
+      </a>
+      <a href="{{ url_for('wishlist_page') }}" class="nav-wish-btn">❤️ Wishlist</a>
+      <a href="{{ url_for('customer_orders') }}">📦 Orders</a>
+      <a href="{{ url_for('customer_jobs') }}">💼 Jobs</a>
+      <a href="{{ url_for('customer_resume') }}">📄 CV</a>
+      <a href="{{ url_for('customer_addresses') }}">📍 Addresses</a>
+      <a href="{{ url_for('recommendations') }}">✨ For You</a>
+
+    {% elif current_role == 'owner' %}
+      <a href="{{ url_for('dashboard') }}">🏠 Home</a>
+      <a href="{{ url_for('owner_analytics') }}">📊 Analytics</a>
+      <a href="{{ url_for('owner_users') }}">👥 Users</a>
+      <a href="{{ url_for('live_stocks') }}">🌐 Live Market</a>
+    {% endif %}
+  </div>
+
+  <div class="nav-right">
+    <!-- Language -->
+    <div class="lang-switcher">
+      {% for code, data in langs.items() %}
+        <a href="{{ url_for('set_lang', lang=code) }}"
+           class="lang-btn {% if lang == code %}active{% endif %}">
+          {{ data.lang_name }}
+        </a>
+      {% endfor %}
+    </div>
+
+    {% if current_user %}
+      <!-- Notifications -->
+      <a href="{{ url_for('notifications') }}" class="notif-btn">
+        🔔 {% if unread_count > 0 %}<span class="badge-red">{{ unread_count }}</span>{% endif %}
+      </a>
+      <span class="user-chip">{{ current_user }}</span>
+      <a href="{{ url_for('profile') }}" class="btn btn-sm btn-outline">👤 Profile</a>
+      <a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline">{{ tr('logout') }}</a>
+    {% else %}
+      <a href="{{ url_for('login') }}"    class="btn btn-sm btn-primary">{{ tr('login') }}</a>
+      <a href="{{ url_for('register') }}" class="btn btn-sm btn-outline">{{ tr('register') }}</a>
+    {% endif %}
+  </div>
+</nav>
+
+<div class="page-wrap">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="alert alert-{{ cat }}">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</div>
+
+<footer>🤖 IntelliMarket AI — ML-Powered Platform &nbsp;|&nbsp; 2024</footer>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <button onclick="history.back()" class="btn btn-outline btn-sm">← Back</button>
+</div>
+
+<div class="product-page-layout">
+  <div class="product-page-img">
+    {% if product.get('image_url') %}
+    <img src="{{ product.image_url }}" alt="{{ product.name }}" style="width:200px;height:200px;object-fit:cover;border-radius:12px;margin:0 auto;display:block">
+    {% else %}
+    <div class="big-product-icon">{{ product.image }}</div>
+    {% endif %}
+    {% if product.get('discount',0) > 0 %}
+    <div class="big-discount-badge">{{ product.discount }}% OFF</div>
+    {% endif %}
+    <div class="product-page-actions">
+      {% if session.get('role') == 'customer' %}
+        {% if product.stock > 0 %}
+        <a href="{{ url_for('cart_add', product_id=product.id) }}" class="btn btn-primary btn-full">🛒 Add to Cart</a>
+        <a href="{{ url_for('checkout', product_id=product.id) }}"  class="btn btn-outline btn-full mt">⚡ Buy Now</a>
+        {% else %}
+        <div class="badge badge-danger" style="text-align:center;padding:.8rem;display:block">❌ Out of Stock</div>
+        {% endif %}
+        <a href="{{ url_for('wishlist_toggle', product_id=product.id) }}" class="btn btn-outline btn-full mt">
+          {{ '❤️ Remove Wishlist' if product.id in wishlist else '🤍 Add to Wishlist' }}
+        </a>
+      {% else %}
+      <a href="{{ url_for('login') }}" class="btn btn-primary btn-full">Login to Buy</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="product-page-info">
+    <h1 class="product-page-title">{{ product.name }}</h1>
+    <div class="product-page-meta">
+      <span class="cat-tag">{{ product.category }}</span>
+      {% if product.stock > 0 %}
+      <span class="badge badge-success">✅ In Stock ({{ product.stock }})</span>
+      {% else %}
+      <span class="badge badge-danger">❌ Out of Stock</span>
+      {% endif %}
+    </div>
+
+    {% if seller %}
+    <div class="product-seller-card">
+      <span class="muted">Sold by:</span>
+      <a href="{{ url_for('shop_seller', seller_id=seller.id) }}" class="seller-link-big">
+        {{ seller.avatar }} {{ seller.get('shop_name', seller.name) }}
+      </a>
+      {% if session.get('role') == 'customer' %}
+        {% if following %}
+        <a href="{{ url_for('unfollow_seller', seller_id=seller.id) }}" class="btn btn-sm btn-outline">✅ Following</a>
+        {% else %}
+        <a href="{{ url_for('follow_seller', seller_id=seller.id) }}" class="btn btn-sm btn-primary">+ Follow</a>
+        {% endif %}
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="product-page-price">
+      {% if product.get('discount',0) > 0 %}
+      <span class="original-price-big">${{ product.price }}</span>
+      <span class="final-price">${{ (product.price*(1-product.discount/100))|round(2) }}</span>
+      <span class="save-badge">Save {{ product.discount }}%</span>
+      {% else %}
+      <span class="final-price">${{ product.price }}</span>
+      {% endif %}
+    </div>
+
+    <div class="product-page-rating">
+      {% for i in range(avg_rating|int) %}⭐{% endfor %}
+      <span>{{ avg_rating }}/5</span>
+      <span class="muted">({{ reviews|length }} reviews)</span>
+    </div>
+
+    <p class="product-page-desc">{{ product.description }}</p>
+
+    {% if product.stock < 5 and product.stock > 0 %}
+    <div class="urgency-badge">🔥 Only {{ product.stock }} left in stock!</div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- REVIEWS -->
+<div class="reviews-section mt">
+  <h3>⭐ Customer Reviews ({{ reviews|length }})</h3>
+  {% if session.get('role') == 'customer' %}
+  <div class="write-review-card">
+    <h4>Write a Review</h4>
+    <form method="POST" action="{{ url_for('shop_review', product_id=product.id) }}">
+      <div class="star-select">
+        {% for i in [5,4,3,2,1] %}
+        <label><input type="radio" name="rating" value="{{ i }}" {{ 'checked' if i==5 else '' }}><span>{{ '⭐'*i }}</span></label>
+        {% endfor %}
+      </div>
+      <textarea name="review" rows="3" placeholder="Share your experience..." required
+        style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:.7rem;color:var(--text);font-family:inherit;margin-top:.5rem"></textarea>
+      <button type="submit" class="btn btn-primary mt">Submit Review</button>
+    </form>
+  </div>
+  {% endif %}
+  {% for r in reviews %}
+  <div class="review-card-full">
+    <div class="review-top">
+      <strong>{{ r.user_name }}</strong>
+      <span>{{ '⭐'*r.rating }}</span>
+      <span class="muted small">{{ r.date }}</span>
+    </div>
+    <p>"{{ r.review }}"</p>
+  </div>
+  {% else %}
+  <p class="muted">No reviews yet. Be the first!</p>
+  {% endfor %}
+</div>
+
+<!-- RELATED -->
+{% if related %}
+<div class="related-section mt">
+  <h3>🔗 Related Products</h3>
+  <div class="related-grid">
+  {% for p in related %}
+  <a href="{{ url_for('shop_product', product_id=p.id) }}" class="related-card">
+    <span class="related-icon">{{ p.image }}</span>
+    <div class="related-name">{{ p.name[:30] }}</div>
+    <div class="related-price">${{ p.price }}</div>
+  </a>
+  {% endfor %}
+  </div>
+</div>
+{% endif %}
+{% endblock %}

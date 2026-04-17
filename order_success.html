@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Order Confirmed!{% endblock %}
+{% block content %}
+<div class="order-success-page">
+  <div class="success-icon">✅</div>
+  <h2>Order Placed Successfully!</h2>
+  <p class="muted">Order #{{ order.id }} confirmed. You will receive notifications with updates.</p>
+
+  <div class="order-detail-card">
+    <div class="od-row"><span>Product</span><strong>{{ order.name }}</strong></div>
+    <div class="od-row"><span>Amount</span><strong>${{ order.price }}</strong></div>
+    <div class="od-row"><span>Payment</span><strong>{{ order.get('payment','COD') }}</strong></div>
+    <div class="od-row"><span>Status</span><span class="badge badge-success">{{ order.status }}</span></div>
+    <div class="od-row"><span>Date</span><strong>{{ order.date }}</strong></div>
+    {% if order.get('address') %}
+    <div class="od-row">
+      <span>Deliver To</span>
+      <strong>
+        {{ order.address.full_name }}<br>
+        {{ order.address.address }},<br>
+        {{ order.address.city }}, {{ order.address.state }} — {{ order.address.pincode }}<br>
+        {% if order.address.get('landmark') %}Landmark: {{ order.address.landmark }}<br>{% endif %}
+        📞 {{ order.address.phone }}
+      </strong>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="success-actions">
+    <a href="{{ url_for('customer_orders') }}" class="btn btn-primary">📦 My Orders</a>
+    <a href="{{ url_for('shop') }}" class="btn btn-outline">🛒 Continue Shopping</a>
+  </div>
+</div>
+{% endblock %}

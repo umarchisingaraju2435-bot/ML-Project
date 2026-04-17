@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Load 100 Products{% endblock %}
+{% block content %}
+<div class="page-header">
+  <button onclick="history.back()" class="btn btn-outline btn-sm">← Back</button>
+  <h2>📦 Load 100 Products with Images</h2>
+</div>
+
+<div class="load-products-page">
+
+  <!-- CURRENT STATUS -->
+  <div class="lp-status-card">
+    <div class="lp-status-icon">📦</div>
+    <div>
+      <h3>Current Products: <strong>{{ my_count }}</strong></h3>
+      <p class="muted">You can load up to 100 products with real images instantly</p>
+    </div>
+  </div>
+
+  <!-- WHAT YOU GET -->
+  <div class="lp-features">
+    <div class="lp-feature">
+      <span>🖼️</span>
+      <div><strong>Real Product Images</strong><p class="muted small">High-quality images from Unsplash</p></div>
+    </div>
+    <div class="lp-feature">
+      <span>📊</span>
+      <div><strong>Real Ratings & Reviews</strong><p class="muted small">Realistic ratings from 3.5 to 5.0</p></div>
+    </div>
+    <div class="lp-feature">
+      <span>💰</span>
+      <div><strong>Realistic Prices</strong><p class="muted small">Category-appropriate pricing</p></div>
+    </div>
+    <div class="lp-feature">
+      <span>🏷️</span>
+      <div><strong>Discounts & Offers</strong><p class="muted small">Random discounts up to 25%</p></div>
+    </div>
+  </div>
+
+  <!-- LOAD FORM -->
+  <div class="form-card mt">
+    <h3>⚡ Load Products Now</h3>
+    <form method="POST">
+      <div class="form-group">
+        <label>Number of Products to Load</label>
+        <div class="count-selector">
+          {% for n in [10, 25, 50, 75, 100] %}
+          <label class="count-opt">
+            <input type="radio" name="count" value="{{ n }}" {{ 'checked' if n==100 else '' }}>
+            <span>{{ n }}</span>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="warning-box">
+        ⚠️ <strong>Note:</strong> This will replace your existing products with new ones.
+        Make sure to backup important data first.
+      </div>
+      <button type="submit" class="btn btn-primary btn-large mt"
+              onclick="return confirm('Load products? This will replace existing products.')">
+        🚀 Load Products with Images
+      </button>
+    </form>
+  </div>
+
+  <!-- PREVIEW -->
+  <div class="lp-preview mt">
+    <h3>👀 Preview — What Products Look Like</h3>
+    <div class="shop-grid">
+      {% set previews = [
+        ('🎧','Wireless Earbuds Pro','Electronics','$79.99','4.5',10),
+        ('💄','Lipstick Collection','Beauty','$24.99','4.6',0),
+        ('🐍','Python Masterclass','Education','$29.99','4.9',15),
+        ('👗','Designer Kurta Set','Fashion','$59.99','4.7',20),
+        ('⌚','Smart Watch Series','Electronics','$149.99','4.3',0),
+        ('✨','Vitamin C Serum','Skincare','$34.99','4.7',10),
+      ] %}
+      {% for icon,name,cat,price,rating,disc in previews %}
+      <div class="shop-card">
+        {% if disc > 0 %}<div class="shop-discount-badge">{{ disc }}% OFF</div>{% endif %}
+        <div class="shop-card-img" style="background:var(--bg2)">
+          <span class="shop-product-icon">{{ icon }}</span>
+        </div>
+        <div class="shop-card-body">
+          <span class="shop-card-name">{{ name }}</span>
+          <span class="cat-tag">{{ cat }}</span>
+          <div class="shop-card-rating">⭐⭐⭐⭐⭐ {{ rating }}</div>
+          <div class="shop-card-price">
+            {% if disc > 0 %}
+            <span class="original-price">{{ price }}</span>
+            {% endif %}
+            <span class="discounted-price">{{ price }}</span>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

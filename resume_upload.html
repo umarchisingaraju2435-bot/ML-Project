@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Upload Resume{% endblock %}
+{% block content %}
+<h2>📄 Upload Your Resume</h2>
+<p class="subtitle">Upload PDF, DOCX, or paste your resume text for ML-powered matching</p>
+
+<div class="form-card">
+    <form method="POST" enctype="multipart/form-data">
+        <div class="form-group">
+            <label>Full Name *</label>
+            <input type="text" name="name" placeholder="John Doe" required>
+        </div>
+        <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" name="email" placeholder="john@example.com">
+        </div>
+        <div class="form-group">
+            <label>Upload Resume File (PDF / DOCX / TXT)</label>
+            <input type="file" name="resume_file" accept=".pdf,.docx,.txt">
+        </div>
+        <div class="divider">— OR —</div>
+        <div class="form-group">
+            <label>Paste Resume Text</label>
+            <textarea name="resume_text" rows="10" placeholder="Paste your resume content here...
+
+Example:
+John Doe | Python Developer
+Skills: Python, Machine Learning, TF-IDF, NLP, Flask, SQL
+Experience: 2 years at TechCorp building ML pipelines
+Projects: Sentiment Analysis System, Resume Matcher
+Education: B.Tech Computer Science"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary btn-large">📤 Upload Resume</button>
+        <a href="{{ url_for('recruitment') }}" class="btn btn-secondary">← Back</a>
+    </form>
+</div>
+{% endblock %}

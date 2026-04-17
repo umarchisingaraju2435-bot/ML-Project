@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% block title %}Add Multiple Products{% endblock %}
+{% block content %}
+<div class="page-header">
+  <button onclick="history.back()" class="btn btn-outline btn-sm">← Back</button>
+  <h2>📋 Add Multiple Products</h2>
+</div>
+
+<!-- TABS -->
+<div class="tab-container">
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('manual',this)">✍️ Manual Entry</button>
+    <button class="tab-btn" onclick="showTab('csv',this)">📄 CSV Upload</button>
+    <button class="tab-btn" onclick="showTab('quick',this)">⚡ Quick Add 5</button>
+  </div>
+
+  <!-- MANUAL: Add up to 10 products at once -->
+  <div id="tab-manual" class="tab-content active">
+    <form method="POST" id="manualForm">
+      <div id="productRows">
+        {% for i in range(3) %}
+        <div class="bulk-row" id="row{{ i }}">
+          <div class="bulk-row-num">{{ i+1 }}</div>
+          <div class="bulk-fields">
+            <div class="form-group">
+              <label>Product Name *</label>
+              <input type="text" name="name" placeholder="e.g. Wireless Earbuds">
+            </div>
+            <div class="form-group">
+              <label>Price ($) *</label>
+              <input type="number" name="price" step="0.01" min="0" placeholder="29.99">
+            </div>
+            <div class="form-group">
+              <label>Category</label>
+              <select name="category">
+                {% for cat in ['Electronics','Fashion','Beauty','Education','Software','Cloud','Health','Sports','Home','Food','Marketing','Other'] %}
+                <option>{{ cat }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Stock</label>
+              <input type="number" name="stock" min="0" placeholder="100" value="100">
+            </div>
+            <div class="form-group">
+              <label>Discount %</label>
+              <input type="number" name="discount" min="0" max="90" placeholder="0" value="0">
+            </div>
+            <div class="form-group">
+              <label>Icon</label>
+              <input type="text" name="image" placeholder="📦" value="📦" style="width:60px;text-align:center;font-size:1.3rem">
+            </div>
+            <div class="form-group" style="flex:2">
+              <label>Description</label>
+              <input type="text" name="description" placeholder="Short product description...">
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <div style="display:flex;gap:.8rem;margin-top:1rem;flex-wrap:wrap">
+        <button type="button" onclick="addRow()" class="btn btn-outline">➕ Add Another Row</button>
+        <button type="submit" class="btn btn-primary">✅ Save All Products</button>
+        <a href="{{ url_for('seller_products') }}" class="btn btn-outline">Cancel</a>
+      </div>
+    </form>
+  </div>
+
+  <!-- CSV UPLOAD -->
+  <div id="tab-csv" class="tab-content">
+    <div class="csv-info">
+      <h4>📄 Upload CSV File</h4>
+      <p class="muted">CSV must have these columns:</p>
+      <code class="csv-format">name, price, category, description, stock, image, discount</code>
+      <div class="csv-example">
+        <strong>Example CSV:</strong>
+        <pre>name,price,category,description,stock,image,discount
+Wireless Earbuds,29.99,Electronics,Premium sound quality,100,🎧,10
+Red Lipstick,19.99,Beauty,Long lasting matte finish,200,💄,0
+Python Book,39.99,Education,Complete Python guide,50,📚,15
+Smart Watch,99.99,Electronics,Health monitoring watch,30,⌚,20
+Cotton T-Shirt,14.99,Fashion,Comfortable daily wear,500,👕,5</pre>
+      </div>
+      <a href="#" onclick="downloadSample()" class="btn btn-outline btn-sm">⬇️ Download Sample CSV</a>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" class="mt">
+      <div class="form-group">
+        <label>Select CSV File</label>
+        <input type="file" name="csv_file" accept=".csv" required>
+      </div>
+      <button type="submit" class="btn btn-primary">📤 Upload & Add Products</button>
+    </form>
+  </div>
+
+  <!-- QUICK ADD 5 -->
+  <div id="tab-quick" class="tab-content">
+    <p class="muted">Quickly add 5 products with minimal info:</p>
+    <form method="POST">
+      <table class="data-table">
+        <thead>
+          <tr><th>#</th><th>Name *</th><th>Price *</th><th>Category</th><th>Stock</th><th>Icon</th></tr>
+        </thead>
+        <tbody>
+        {% for i in range(5) %}
+        <tr>
+          <td>{{ i+1 }}</td>
+          <td><input type="text" name="name" placeholder="Product name" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:.4rem;color:var(--text)"></td>
+          <td><input type="number" name="price" step="0.01" placeholder="0.00" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:.4rem;color:var(--text)"></td>
+          <td>
+            <select name="category" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:.4rem;color:var(--text)">
+              {% for cat in ['Electronics','Fashion','Beauty','Education','Software','Health','Sports','Other'] %}
+              <option>{{ cat }}</option>
+              {% endfor %}
+            </select>
+          </td>
+          <td><input type="number" name="stock" value="100" min="0" style="width:70px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:.4rem;color:var(--text)"></td>
+          <td><input type="text" name="image" value="📦" style="width:50px;text-align:center;font-size:1.2rem;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:.4rem;color:var(--text)"></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      <div class="form-group mt">
+        <label>Description (applies to all above)</label>
+        <input type="text" name="description" placeholder="Leave blank for individual descriptions" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:.6rem;color:var(--text)">
+      </div>
+      <button type="submit" class="btn btn-primary mt">✅ Add All 5 Products</button>
+    </form>
+  </div>
+</div>
+
+<script>
+let rowCount = 3;
+function addRow() {
+  if(rowCount >= 15) { alert('Maximum 15 products at once'); return; }
+  rowCount++;
+  const container = document.getElementById('productRows');
+  const row = document.createElement('div');
+  row.className = 'bulk-row';
+  row.innerHTML = `
+    <div class="bulk-row-num">${rowCount}</div>
+    <div class="bulk-fields">
+      <div class="form-group"><label>Product Name *</label><input type="text" name="name" placeholder="Product name"></div>
+      <div class="form-group"><label>Price ($) *</label><input type="number" name="price" step="0.01" min="0" placeholder="0.00"></div>
+      <div class="form-group"><label>Category</label>
+        <select name="category">
+          <option>Electronics</option><option>Fashion</option><option>Beauty</option>
+          <option>Education</option><option>Software</option><option>Health</option>
+          <option>Sports</option><option>Other</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Stock</label><input type="number" name="stock" value="100" min="0"></div>
+      <div class="form-group"><label>Discount %</label><input type="number" name="discount" value="0" min="0" max="90"></div>
+      <div class="form-group"><label>Icon</label><input type="text" name="image" value="📦" style="width:60px;text-align:center;font-size:1.3rem"></div>
+      <div class="form-group" style="flex:2"><label>Description</label><input type="text" name="description" placeholder="Description..."></div>
+    </div>`;
+  container.appendChild(row);
+}
+
+function showTab(name, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+}
+
+function downloadSample() {
+  const csv = `name,price,category,description,stock,image,discount
+Wireless Earbuds,29.99,Electronics,Premium sound quality earbuds,100,🎧,10
+Red Lipstick,19.99,Beauty,Long lasting matte finish lipstick,200,💄,0
+Python Book,39.99,Education,Complete Python programming guide,50,📚,15
+Smart Watch,99.99,Electronics,Health monitoring smartwatch,30,⌚,20
+Cotton T-Shirt,14.99,Fashion,Comfortable daily wear t-shirt,500,👕,5`;
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'sample_products.csv';
+  a.click();
+}
+</script>
+{% endblock %}

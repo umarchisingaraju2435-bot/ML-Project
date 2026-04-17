@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block title %}BERT Review Analysis{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <h2>🧠 BERT Customer Review Analysis</h2>
+  <span class="bert-badge">DistilBERT · ~91% Accuracy</span>
+</div>
+
+<!-- MODEL INFO CARD -->
+<div class="bert-info-card">
+  <div class="bert-info-item">
+    <span class="bert-info-icon">🤖</span>
+    <div>
+      <strong>Model</strong>
+      <p>distilbert-base-uncased-finetuned-sst-2-english</p>
+    </div>
+  </div>
+  <div class="bert-info-item">
+    <span class="bert-info-icon">🎯</span>
+    <div>
+      <strong>Accuracy</strong>
+      <p>~91% on SST-2 benchmark dataset</p>
+    </div>
+  </div>
+  <div class="bert-info-item">
+    <span class="bert-info-icon">⚡</span>
+    <div>
+      <strong>Why BERT?</strong>
+      <p>Understands context, sarcasm & nuance — not just keywords</p>
+    </div>
+  </div>
+  <div class="bert-info-item">
+    <span class="bert-info-icon">📊</span>
+    <div>
+      <strong>Output</strong>
+      <p>Good Review ✅ / Bad Review ❌ + Confidence %</p>
+    </div>
+  </div>
+</div>
+
+<!-- ANALYZE FROM PRODUCT DB -->
+{% if my_products %}
+<div class="form-card mt">
+  <h3>📦 Analyze Product Reviews from Database</h3>
+  <div class="product-review-btns">
+    {% for p in my_products %}
+    {% set p_reviews = product_reviews | selectattr('product_id','eq',p.id) | list %}
+    <a href="{{ url_for('seller_reviews', product_id=p.id) }}"
+       class="product-review-btn">
+      {{ p.image }} {{ p.name }}
+      <span class="rev-count">{{ p_reviews|length }} reviews</span>
+    </a>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- MANUAL INPUT FORM -->
+<div class="form-card mt">
+  <h3>✍️ Paste Reviews Manually</h3>
+  <form method="POST">
+    <div class="form-group">
+      <label>Customer Reviews (one per line)</label>
+      <textarea name="reviews" rows="8"
+        placeholder="Paste customer reviews here, one per line...
+
+Example:
+This product is absolutely amazing! Best purchase ever.
+Terrible quality, broke after 2 days. Very disappointed.
+Good value for money, works as expected.
+Worst product I have ever bought. Complete waste of money.
+Excellent customer service and fast delivery!"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">
+      🧠 Analyze with BERT
+    </button>
+  </form>
+</div>
+
+<!-- RESULTS -->
+{% if result %}
+<div class="bert-results mt">
+
+  <!-- VERDICT BANNER -->
+  <div class="verdict-banner">
+    <span class="verdict-text">{{ result.verdict }}</span>
+    <span class="star-display">{{ result.stars_display }} {{ result.star_rating }}/5</span>
+  </div>
+
+  <!-- SUMMARY STATS -->
+  <div class="bert-stats-row">
+    <div class="bert-stat good">
+      <div class="bert-stat-num">{{ result.summary['Good Review'] }}</div>
+      <div>✅ Good Reviews</div>
+      <div class="bert-pct">{{ result.good_pct }}%</div>
+    </div>
+    <div class="bert-stat bad">
+      <div class="bert-stat-num">{{ result.summary['Bad Review'] }}</div>
+      <div>❌ Bad Reviews</div>
+      <div class="bert-pct">{{ result.bad_pct }}%</div>
+    </div>
+    <div class="bert-stat total">
+      <div class="bert-stat-num">{{ result.summary['Total'] }}</div>
+      <div>📝 Total Reviews</div>
+      <div class="bert-pct">Score: {{ result.score }}</div>
+    </div>
+  </div>
+
+  <!-- PROGRESS BAR -->
+  <div class="sentiment-bar-wrap">
+    <div class="sentiment-bar">
+      <div class="bar-good"  style="width:{{ result.good_pct }}%">{{ result.good_pct }}% Good</div>
+      <div class="bar-bad"   style="width:{{ result.bad_pct }}%">{{ result.bad_pct }}% Bad</div>
+    </div>
+  </div>
+
+  <!-- INDIVIDUAL REVIEWS -->
+  <h3 class="mt">📋 Review-by-Review Analysis</h3>
+  <div class="review-list">
+    {% for r in result.results %}
+    <div class="review-item review-{{ 'good' if r.label == 'Good Review' else 'bad' }}">
+      <div class="review-header">
+        <span class="review-emoji">{{ r.emoji }}</span>
+        <span class="review-label">{{ r.label }}</span>
+        <div class="confidence-wrap">
+          <div class="confidence-bar" style="width:{{ r.bar_width }}%;background:{{ r.color }}"></div>
+          <span class="confidence-num">{{ r.confidence }}% confident</span>
+        </div>
+      </div>
+      <p class="review-text">"{{ r.review }}"</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- MODEL FOOTER -->
+  <div class="model-footer">
+    🤖 <strong>Model:</strong> {{ result.model }} &nbsp;|&nbsp;
+    🎯 <strong>{{ result.accuracy_note }}</strong>
+  </div>
+
+</div>
+{% endif %}
+
+{% endblock %}

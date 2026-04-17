@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Interview Result{% endblock %}
+{% block content %}
+<div class="page-header"><h2>📊 Interview Result</h2></div>
+<div class="result-hero">
+  <div class="big-score sc-{{ 'high' if score >= 70 else 'mid' if score >= 40 else 'low' }}">{{ score }}%</div>
+  <h3>{% if score >= 70 %}🏆 Excellent!{% elif score >= 40 %}👍 Good Effort{% else %}📚 Keep Practicing{% endif %}</h3>
+  <p>Answered {{ answers.values()|selectattr('strip')|list|length }} / {{ total }} questions</p>
+</div>
+<h3 class="mt">Your Answers</h3>
+{% for question, answer in answers.items() %}
+<div class="ans-review">
+  <div class="ans-q">❓ {{ question }}</div>
+  <div class="ans-a {{ 'answered' if answer.strip() else 'unanswered' }}">
+    {% if answer.strip() %}✅ {{ answer }}{% else %}⚠️ Not answered{% endif %}
+  </div>
+</div>
+{% endfor %}
+<div class="form-btns mt">
+  <a href="{{ url_for('customer_jobs') }}" class="btn btn-primary">← Browse More Jobs</a>
+  <a href="{{ url_for('customer_resume') }}" class="btn btn-outline">✨ Improve Resume</a>
+</div>
+{% endblock %}

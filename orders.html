@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}My Orders{% endblock %}
+{% block content %}
+<div class="page-header">
+  <button onclick="history.back()" class="btn btn-outline btn-sm">← Back</button>
+  <h2>📦 My Orders</h2>
+</div>
+
+{% if orders %}
+{% for o in orders %}
+<div class="order-card">
+  <div class="order-header">
+    <div>
+      <span class="order-id">Order #{{ o.id }}</span>
+      <span class="muted small"> {{ o.date }}</span>
+    </div>
+    <span class="badge badge-{{ 'success' if o.status=='Delivered' else 'warn' if o.status in ['Processing','Shipped'] else 'info' }}">
+      {{ o.status }}
+    </span>
+  </div>
+  <div class="order-body">
+    <div class="order-product">
+      <strong>{{ o.name }}</strong>
+      <span class="price">${{ o.price }}</span>
+    </div>
+    {% if o.get('payment') %}<p class="muted small">💳 {{ o.payment }}</p>{% endif %}
+    {% if o.get('address') %}
+    <p class="muted small">📍 {{ o.address.full_name }}, {{ o.address.city }}, {{ o.address.state }}</p>
+    {% endif %}
+  </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="empty-state">
+  <p>No orders yet.</p>
+  <a href="{{ url_for('shop') }}" class="btn btn-primary mt">🛒 Start Shopping</a>
+</div>
+{% endif %}
+{% endblock %}

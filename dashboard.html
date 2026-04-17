@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Seller Dashboard{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2>🏪 Seller Dashboard</h2>
+  <span class="welcome-chip">Welcome, {{ current_user }}</span>
+</div>
+
+<div class="stats-row">
+  <div class="stat-card"><div class="stat-num">{{ jobs|length }}</div><div>Jobs Posted</div></div>
+  <div class="stat-card"><div class="stat-num">{{ products|length }}</div><div>Products</div></div>
+  <div class="stat-card"><div class="stat-num">{{ applications|length }}</div><div>Applications</div></div>
+  <div class="stat-card"><div class="stat-num">{{ notifications|length }}</div><div>Alerts</div></div>
+</div>
+
+<div class="dash-grid">
+  <div class="dash-section">
+    <h3>🔔 Recent Alerts</h3>
+    {% for n in notifications[:4] %}
+    <div class="notif-card notif-{{ n.type }}">
+      <strong>{{ n.title }}</strong><br>
+      <small>{{ n.message }}</small>
+      <span class="notif-time">{{ n.time }}</span>
+    </div>
+    {% else %}
+    <p class="muted">No alerts yet.</p>
+    {% endfor %}
+    <a href="{{ url_for('notifications') }}" class="btn btn-sm btn-outline mt">View All</a>
+  </div>
+
+  <div class="dash-section">
+    <h3>💼 Quick Actions</h3>
+    <div class="quick-actions">
+      <a href="{{ url_for('seller_market') }}"  class="qa-btn">📊 Market Analysis</a>
+      <a href="{{ url_for('seller_stocks') }}"  class="qa-btn">📈 Stock Market</a>
+      <a href="{{ url_for('post_job') }}"        class="qa-btn">➕ Post Job</a>
+      <a href="{{ url_for('seller_jobs') }}"     class="qa-btn">👥 View Applications</a>
+      <a href="{{ url_for('seller_reviews') }}"  class="qa-btn">🧠 BERT Reviews</a>
+    </div>
+  </div>
+</div>
+
+<h3>📩 Latest Job Applications</h3>
+{% if applications %}
+<table class="data-table">
+  <thead><tr><th>Applicant</th><th>Job</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
+  <tbody>
+  {% for a in applications[:5] %}
+  <tr>
+    <td>{{ a.name }}</td>
+    <td>{{ jobs | selectattr('id','eq',a.job_id) | map(attribute='title') | first | default('N/A') }}</td>
+    <td><span class="badge badge-success">{{ a.status }}</span></td>
+    <td>{{ a.applied }}</td>
+    <td><a href="{{ url_for('view_resume', resume_id=a.resume_id) }}" class="btn btn-sm btn-primary">View Resume</a></td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="muted">No applications yet. <a href="{{ url_for('post_job') }}">Post a job</a> to attract candidates.</p>
+{% endif %}
+{% endblock %}

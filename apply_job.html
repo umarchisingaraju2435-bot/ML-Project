@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Apply for Job{% endblock %}
+{% block content %}
+<div class="page-header"><h2>📩 Apply — {{ job.title }}</h2></div>
+<div class="job-detail-card">
+  <h3>{{ job.title }} <span class="company-tag">{{ job.company }}</span></h3>
+  <p>📍 {{ job.location }} &nbsp;|&nbsp; 💰 {{ job.salary }}</p>
+  <p class="mt">{{ job.description }}</p>
+</div>
+
+<div class="form-card mt">
+  <h3>Select Your Resume</h3>
+  {% if my_resumes %}
+  <form method="POST">
+    {% for r in my_resumes %}
+    <label class="resume-select-card">
+      <input type="radio" name="resume_id" value="{{ r.id }}" required>
+      <div>
+        <strong>{{ r.name }}</strong><br>
+        <small>{{ r.skills }}</small><br>
+        <small class="muted">Updated: {{ r.updated }}</small>
+      </div>
+    </label>
+    {% endfor %}
+    <button type="submit" class="btn btn-primary btn-full mt">📤 Submit Application</button>
+  </form>
+  {% else %}
+  <div class="empty-state">
+    You need to upload a resume first.
+    <a href="{{ url_for('customer_resume') }}" class="btn btn-primary mt">Upload Resume</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

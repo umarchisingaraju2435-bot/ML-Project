@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}IntelliMarket AI — Welcome{% endblock %}
+{% block content %}
+<div class="landing">
+  <div class="landing-hero">
+    <h1>🤖 IntelliMarket AI</h1>
+    <p class="hero-sub">{{ tr('subtitle') }}</p>
+    <div class="role-cards">
+      <div class="role-card seller-card">
+        <div class="role-icon">🏪</div>
+        <h3>{{ tr('role_seller') }}</h3>
+        <p>{{ tr('seller_desc') }}</p>
+        <a href="{{ url_for('login') }}?role=seller" class="btn btn-seller">{{ tr('login') }}</a>
+      </div>
+      <div class="role-card customer-card">
+        <div class="role-icon">👤</div>
+        <h3>{{ tr('role_customer') }}</h3>
+        <p>{{ tr('customer_desc') }}</p>
+        <a href="{{ url_for('login') }}?role=customer" class="btn btn-customer">{{ tr('login') }}</a>
+      </div>
+      <div class="role-card owner-card">
+        <div class="role-icon">🌐</div>
+        <h3>{{ tr('role_owner') }}</h3>
+        <p>{{ tr('owner_desc') }}</p>
+        <a href="{{ url_for('login') }}?role=owner" class="btn btn-owner">{{ tr('login') }}</a>
+      </div>
+    </div>
+    <p class="register-hint">New here? <a href="{{ url_for('register') }}">{{ tr('register') }}</a></p>
+  </div>
+
+  <div class="features-strip">
+    <div class="feat"><span>📊</span> Market Intelligence</div>
+    <div class="feat"><span>📈</span> Stock Analysis</div>
+    <div class="feat"><span>📄</span> Resume Matching</div>
+    <div class="feat"><span>🔔</span> Live Notifications</div>
+    <div class="feat"><span>🎤</span> Online Interview</div>
+    <div class="feat"><span>🌐</span> Multi-Language</div>
+  </div>
+</div>
+{% endblock %}

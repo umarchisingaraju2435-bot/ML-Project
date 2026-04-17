@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}My Cart{% endblock %}
+{% block content %}
+<div class="page-header">
+  <button onclick="history.back()" class="btn btn-outline btn-sm">← Back</button>
+  <h2>🛒 My Cart ({{ items|length }} items)</h2>
+</div>
+{% if items %}
+<div class="cart-layout">
+  <div class="cart-items">
+    {% for item in items %}
+    <div class="cart-item-card">
+      <span class="cart-item-icon">{{ item.product.image }}</span>
+      <div class="cart-item-info">
+        <a href="{{ url_for('shop_product', product_id=item.product.id) }}" class="cart-item-name">{{ item.product.name }}</a>
+        <p class="muted small">{{ item.product.category }}</p>
+        <p class="muted small">Unit: ${{ item.product.price }}</p>
+      </div>
+      <div class="cart-item-right">
+        <div class="cart-qty">Qty: {{ item.qty }}</div>
+        <div class="price">${{ item.subtotal }}</div>
+        <a href="{{ url_for('cart_remove', product_id=item.product.id) }}" class="btn btn-sm btn-danger">🗑 Remove</a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  <div class="cart-summary-box">
+    <h3>Order Summary</h3>
+    {% for item in items %}
+    <div class="summary-price-row">
+      <span>{{ item.product.name[:20] }} x{{ item.qty }}</span>
+      <span>${{ item.subtotal }}</span>
+    </div>
+    {% endfor %}
+    <div class="summary-price-row"><span>Delivery</span><span class="text-green">FREE</span></div>
+    <div class="summary-total"><span>Total</span><span>${{ total }}</span></div>
+    <a href="{{ url_for('cart_checkout') }}" class="btn btn-primary btn-full mt">Checkout →</a>
+    <a href="{{ url_for('shop') }}" class="btn btn-outline btn-full mt">← Continue Shopping</a>
+  </div>
+</div>
+{% else %}
+<div class="empty-state">
+  <p>🛒 Your cart is empty.</p>
+  <a href="{{ url_for('shop') }}" class="btn btn-primary mt">Start Shopping →</a>
+</div>
+{% endif %}
+{% endblock %}

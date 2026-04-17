@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Checkout{% endblock %}
+{% block content %}
+<div class="page-header">
+  <button onclick="history.back()" class="btn btn-outline btn-sm">← Back</button>
+  <h2>🛒 Checkout ({{ items|length }} items)</h2>
+</div>
+<div class="checkout-layout">
+  <div class="checkout-main">
+    <form method="POST">
+      {% if addresses %}
+      <div class="checkout-section">
+        <h3>📍 Select Delivery Address</h3>
+        {% for a in addresses %}
+        <label class="addr-select-card">
+          <input type="radio" name="addr_id" value="{{ a.id }}" {{ 'checked' if a.is_default else '' }}>
+          <div class="addr-card-body">
+            <div class="addr-top">
+              <strong>{{ a.full_name }}</strong>
+              <span class="addr-type-tag">{{ a.get('address_type','Home') }}</span>
+              {% if a.is_default %}<span class="badge badge-success">Default</span>{% endif %}
+            </div>
+            <p>{{ a.address }}, {{ a.city }}, {{ a.state }} — {{ a.pincode }}</p>
+            {% if a.landmark %}<p class="muted small">Landmark: {{ a.landmark }}</p>{% endif %}
+            <p class="muted small">📞 {{ a.phone }}</p>
+          </div>
+        </label>
+        {% endfor %}
+        <label class="addr-select-card">
+          <input type="radio" name="addr_id" value="new" id="newAddrRadio">
+          <div>➕ Add New Address</div>
+        </label>
+      </div>
+      {% endif %}
+
+      <div class="checkout-section" id="newAddrForm" style="{{ 'display:none' if addresses else '' }}">
+        <h3>📍 Delivery Address</h3>
+        <div class="form-row">
+          <div class="form-group flex1"><label>Full Name *</label><input type="text" name="full_name" placeholder="John Doe"></div>
+          <div class="form-group flex1"><label>Phone *</label><input type="tel" name="phone" placeholder="9876543210"></div>
+        </div>
+        <div class="form-group"><label>Address *</label><textarea name="address" rows="2" placeholder="House No, Street, Area"></textarea></div>
+        <div class="form-row">
+          <div class="form-group flex1"><label>City *</label><input type="text" name="city" placeholder="Chennai"></div>
+          <div class="form-group flex1"><label>State *</label><input type="text" name="state" placeholder="Tamil Nadu"></div>
+          <div class="form-group" style="width:130px"><label>Pincode *</label><input type="text" name="pincode" placeholder="600001"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group flex1"><label>Landmark</label><input type="text" name="landmark" placeholder="Near Bus Stop"></div>
+          <div class="form-group flex1"><label>Type</label><select name="address_type"><option>Home</option><option>Work</option><option>Other</option></select></div>
+        </div>
+        <label class="checkbox-label"><input type="checkbox" name="save_address" value="1"> Save for future</label>
+      </div>
+
+      <div class="checkout-section">
+        <h3>💳 Payment Method</h3>
+        <div class="payment-options">
+          <label class="payment-opt"><input type="radio" name="payment" value="COD" checked><div class="pay-card">💵 Cash on Delivery</div></label>
+          <label class="payment-opt"><input type="radio" name="payment" value="UPI"><div class="pay-card">📱 UPI / GPay</div></label>
+          <label class="payment-opt"><input type="radio" name="payment" value="Card"><div class="pay-card">💳 Card</div></label>
+          <label class="payment-opt"><input type="radio" name="payment" value="NetBanking"><div class="pay-card">🏦 Net Banking</div></label>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-full btn-large">✅ Place Order — ${{ total }}</button>
+    </form>
+  </div>
+
+  <div class="checkout-summary">
+    <h3>📦 Order Summary</h3>
+    {% for item in items %}
+    <div class="summary-product">
+      <span style="font-size:1.5rem">{{ item.product.image }}</span>
+      <div><strong>{{ item.product.name[:25] }}</strong><p class="muted small">Qty: {{ item.qty }}</p></div>
+      <span class="price">${{ item.subtotal }}</span>
+    </div>
+    {% endfor %}
+    <div class="summary-price-row"><span>Delivery</span><span class="text-green">FREE</span></div>
+    <div class="summary-total"><span>Total</span><span>${{ total }}</span></div>
+  </div>
+</div>
+<script>
+document.querySelectorAll('input[name="addr_id"]').forEach(r => {
+  r.addEventListener('change', function() {
+    document.getElementById('newAddrForm').style.display = this.value==='new' ? 'block' : 'none';
+  });
+});
+</script>
+{% endblock %}

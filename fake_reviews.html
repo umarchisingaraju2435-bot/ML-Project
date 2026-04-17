@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% block title %}Fake Review Detection{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <button onclick="history.back()" class="btn btn-outline btn-sm">← Back</button>
+  <h2>🚨 Fake Review Detector</h2>
+  <span class="bert-badge">DistilBERT + Heuristics · ~87% Accuracy</span>
+</div>
+
+<!-- HOW IT WORKS -->
+<div class="fake-info-grid">
+  <div class="fake-info-card">
+    <span class="fi-icon">🧠</span>
+    <div><strong>BERT Analysis</strong><p class="muted small">Detects sentiment mismatch between text and rating</p></div>
+  </div>
+  <div class="fake-info-card">
+    <span class="fi-icon">🔍</span>
+    <div><strong>Pattern Detection</strong><p class="muted small">Finds generic phrases, repetition, vague language</p></div>
+  </div>
+  <div class="fake-info-card">
+    <span class="fi-icon">📊</span>
+    <div><strong>Vocabulary Analysis</strong><p class="muted small">Checks word diversity and specific details</p></div>
+  </div>
+  <div class="fake-info-card">
+    <span class="fi-icon">⚡</span>
+    <div><strong>Auto Detection</strong><p class="muted small">Flags fake reviews automatically when submitted</p></div>
+  </div>
+</div>
+
+<!-- ANALYZE FROM PRODUCT DB -->
+{% if my_products %}
+<div class="form-card mt">
+  <h3>📦 Analyze Product Reviews from Database</h3>
+  <div class="product-review-btns">
+    {% for p in my_products %}
+    {% set p_reviews = product_reviews|selectattr('product_id','eq',p.id)|list %}
+    <a href="{{ url_for('seller_fake_reviews', product_id=p.id) }}"
+       class="product-review-btn">
+      {{ p.image }} {{ p.name }}
+      <span class="rev-count">{{ p_reviews|length }} reviews</span>
+    </a>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- MANUAL INPUT -->
+<div class="form-card mt">
+  <h3>✍️ Paste Reviews Manually</h3>
+  <form method="POST">
+    <div class="form-group">
+      <label>Reviews (one per line)</label>
+      <textarea name="reviews" rows="8" placeholder="Paste reviews here, one per line...
+
+Example:
+Best product ever! Highly recommend! Amazing quality!
+The battery died after 2 days. Very disappointed with quality.
+Good product, works as expected. Battery lasts about 8 hours.
+BEST PRODUCT EVER BUY NOW AMAZING WONDERFUL PERFECT
+I bought this for my daughter and she loves the color and size."></textarea>
+    </div>
+    <div class="form-group">
+      <label>Ratings (comma-separated, matching reviews above)</label>
+      <input type="text" name="ratings" placeholder="5,2,4,5,5" value="5,2,4,5,5">
+      <p class="muted small">Enter rating (1-5) for each review separated by commas</p>
+    </div>
+    <button type="submit" class="btn btn-primary">🚨 Detect Fake Reviews</button>
+  </form>
+</div>
+
+<!-- RESULTS -->
+{% if result %}
+<div class="fake-results mt">
+
+  <!-- VERDICT BANNER -->
+  <div class="fake-verdict" style="border-color:{{ result.verdict_color }}">
+    <span class="verdict-text">{{ result.verdict }}</span>
+    <span class="fake-pct" style="color:{{ result.verdict_color }}">
+      {{ result.fake_pct }}% Fake
+    </span>
+  </div>
+
+  <!-- SUMMARY STATS -->
+  <div class="fake-stats-row">
+    <div class="fake-stat" style="border-color:#ef4444">
+      <div class="fake-stat-num" style="color:#ef4444">{{ result.summary.Fake }}</div>
+      <div>🚨 Fake</div>
+      <div class="muted small">{{ result.fake_pct }}%</div>
+    </div>
+    <div class="fake-stat" style="border-color:#f59e0b">
+      <div class="fake-stat-num" style="color:#f59e0b">{{ result.summary.Suspicious }}</div>
+      <div>⚠️ Suspicious</div>
+    </div>
+    <div class="fake-stat" style="border-color:#22c55e">
+      <div class="fake-stat-num" style="color:#22c55e">{{ result.summary.Genuine }}</div>
+      <div>✅ Genuine</div>
+      <div class="muted small">{{ result.genuine_pct }}%</div>
+    </div>
+    <div class="fake-stat" style="border-color:var(--border)">
+      <div class="fake-stat-num">{{ result.summary.Total }}</div>
+      <div>📝 Total</div>
+    </div>
+  </div>
+
+  <!-- PROGRESS BAR -->
+  <div class="fake-bar-wrap">
+    <div class="fake-bar">
+      {% set fake_w = result.fake_pct %}
+      {% set susp_w = (result.summary.Suspicious / result.summary.Total * 100)|round(1) %}
+      {% set gen_w  = result.genuine_pct %}
+      <div style="width:{{ fake_w }}%;background:#ef4444;height:100%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.78rem;font-weight:600;min-width:{{ '30px' if fake_w > 0 else '0' }}">
+        {% if fake_w > 5 %}{{ fake_w }}% Fake{% endif %}
+      </div>
+      <div style="width:{{ susp_w }}%;background:#f59e0b;height:100%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.78rem;min-width:{{ '30px' if susp_w > 0 else '0' }}">
+        {% if susp_w > 5 %}{{ susp_w }}%{% endif %}
+      </div>
+      <div style="width:{{ gen_w }}%;background:#22c55e;height:100%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.78rem;min-width:{{ '30px' if gen_w > 0 else '0' }}">
+        {% if gen_w > 5 %}{{ gen_w }}% Genuine{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- INDIVIDUAL REVIEW RESULTS -->
+  <h3 class="mt">📋 Review-by-Review Analysis</h3>
+  {% for r in result.results %}
+  <div class="fake-review-card" style="border-left-color:{{ r.color }}">
+    <div class="frc-header">
+      <span class="frc-emoji">{{ r.emoji }}</span>
+      <span class="frc-label" style="color:{{ r.color }}">{{ r.label }}</span>
+      <div class="frc-score-bar">
+        <div class="frc-bar-fill" style="width:{{ r.fake_score }}%;background:{{ r.color }}"></div>
+      </div>
+      <span class="frc-score" style="color:{{ r.color }}">
+        {% if r.label == 'Genuine Review' %}
+        {{ r.confidence }}% genuine
+        {% else %}
+        {{ r.fake_score }}% fake score
+        {% endif %}
+      </span>
+      <span class="muted small">⭐ {{ r.rating }}/5 · {{ r.word_count }} words</span>
+    </div>
+    <p class="frc-text">"{{ r.review }}"</p>
+    <div class="frc-reasons">
+      {% for reason in r.reasons %}
+      <span class="frc-reason">{{ reason }}</span>
+      {% endfor %}
+    </div>
+    <div class="frc-bert">
+      🤖 BERT: <strong>{{ r.bert_label }}</strong> ({{ r.bert_conf }}% confidence)
+    </div>
+  </div>
+  {% endfor %}
+
+  <!-- MODEL INFO -->
+  <div class="model-footer mt">
+    🤖 <strong>Model:</strong> {{ result.model }} &nbsp;|&nbsp;
+    🎯 <strong>{{ result.accuracy_note }}</strong>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

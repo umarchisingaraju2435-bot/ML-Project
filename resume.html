@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}My Resume{% endblock %}
+{% block content %}
+<div class="page-header"><h2>📄 {{ tr('upload_resume') }} / {{ tr('update_resume') }}</h2></div>
+
+{% if my_resumes %}
+<div class="resume-exists">
+  <h3>✅ Your Current Resume</h3>
+  {% for r in my_resumes %}
+  <div class="resume-card">
+    <div class="resume-meta">
+      <span>👤 {{ r.name }}</span>
+      <span>📧 {{ r.email }}</span>
+      <span>🕐 {{ r.updated }}</span>
+    </div>
+    {% if r.skills %}<p><strong>Skills:</strong> {{ r.skills }}</p>{% endif %}
+    {% if r.experience %}<p><strong>Experience:</strong> {{ r.experience }}</p>{% endif %}
+    <pre class="resume-text">{{ r.text[:300] }}...</pre>
+    <div class="resume-actions">
+      {% for j in jobs %}
+      <a href="{{ url_for('customer_interview', resume_id=r.id, job_id=j.id) }}" class="btn btn-sm btn-primary">🎤 Interview for {{ j.title }}</a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="form-card mt">
+  <h3>{% if my_resumes %}🔄 Update Resume{% else %}📤 Upload New Resume{% endif %}</h3>
+  <form method="POST" enctype="multipart/form-data">
+    <input type="hidden" name="action" value="{{ 'update' if my_resumes else 'upload' }}">
+    <div class="form-group">
+      <label>Skills (comma separated)</label>
+      <input type="text" name="skills" placeholder="Python, ML, Flask, SQL, NLP">
+    </div>
+    <div class="form-group">
+      <label>Experience</label>
+      <textarea name="experience" rows="3" placeholder="2 years at TechCorp as ML Engineer..."></textarea>
+    </div>
+    <div class="form-group">
+      <label>Upload File (PDF / DOCX / TXT)</label>
+      <input type="file" name="resume_file" accept=".pdf,.docx,.txt">
+    </div>
+    <div class="divider">— OR paste text —</div>
+    <div class="form-group">
+      <textarea name="resume_text" rows="8"
+        placeholder="Paste your full resume here..."></textarea>
+    </div>
+    <div class="upload-note">
+      🔔 <strong>Note:</strong> When you upload/update your resume, all sellers will be notified instantly!
+    </div>
+    <button type="submit" class="btn btn-primary btn-full">
+      {% if my_resumes %}🔄 Update Resume{% else %}📤 Upload Resume{% endif %}
+    </button>
+  </form>
+</div>
+{% endblock %}

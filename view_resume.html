@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}View Resume{% endblock %}
+{% block content %}
+<div class="page-header"><h2>📄 Resume — {{ resume.name }}</h2></div>
+<div class="resume-card">
+  <div class="resume-meta">
+    <span>👤 {{ resume.name }}</span>
+    <span>📧 {{ resume.email }}</span>
+    <span>🕐 Updated: {{ resume.updated }}</span>
+  </div>
+  {% if resume.skills %}
+  <div class="resume-section"><h4>🛠 Skills</h4><p>{{ resume.skills }}</p></div>
+  {% endif %}
+  {% if resume.experience %}
+  <div class="resume-section"><h4>💼 Experience</h4><p>{{ resume.experience }}</p></div>
+  {% endif %}
+  <div class="resume-section"><h4>📝 Full Resume</h4><pre class="resume-text">{{ resume.text }}</pre></div>
+</div>
+
+<h3 class="mt">🔍 Match Against Jobs</h3>
+<div class="jobs-grid">
+{% for j in jobs %}
+<div class="job-card">
+  <h4>{{ j.title }}</h4>
+  <p class="muted">{{ j.company }}</p>
+  <a href="{{ url_for('seller_match', job_id=j.id) }}" class="btn btn-sm btn-primary">Match All Resumes</a>
+</div>
+{% endfor %}
+</div>
+<a href="{{ url_for('seller_jobs') }}" class="btn btn-outline mt">← Back</a>
+{% endblock %}

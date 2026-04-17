@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Add Product{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2>➕ Add New Product</h2>
+  <a href="{{ url_for('seller_products') }}" class="btn btn-outline">← Back</a>
+</div>
+<div class="form-card">
+  <form method="POST" enctype="multipart/form-data">
+    <div class="form-row">
+      <div class="form-group flex1">
+        <label>Product Name *</label>
+        <input type="text" name="name" required placeholder="e.g. Wireless Headphones Pro">
+      </div>
+      <div class="form-group">
+        <label>Emoji Icon</label>
+        <input type="text" name="image" value="📦" style="width:80px;text-align:center;font-size:1.5rem">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group flex1">
+        <label>Category *</label>
+        <select name="category">
+          {% for cat in ['Electronics','Fashion','Home & Kitchen','Sports','Books','Beauty','Software','Education','Health','Toys','Automotive','Garden','Food','Cloud','Marketing'] %}
+          <option>{{ cat }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group flex1">
+        <label>Price ($) *</label>
+        <input type="number" name="price" required step="0.01" min="0" placeholder="99.99">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group flex1">
+        <label>Stock Quantity *</label>
+        <input type="number" name="stock" required min="0" placeholder="100">
+      </div>
+      <div class="form-group flex1">
+        <label>Discount (%)</label>
+        <input type="number" name="discount" min="0" max="90" value="0" placeholder="0">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Product Image (optional — upload photo)</label>
+      <input type="file" name="image_file" accept="image/*">
+      <p class="muted small">Or use emoji icon above if no image</p>
+    </div>
+    <div class="form-group">
+      <label>Description *</label>
+      <textarea name="description" rows="4" required
+        placeholder="Describe your product features, benefits, specifications..."></textarea>
+    </div>
+    <div class="form-btns">
+      <button type="submit" class="btn btn-primary">✅ Add Product</button>
+      <a href="{{ url_for('seller_products') }}" class="btn btn-outline">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

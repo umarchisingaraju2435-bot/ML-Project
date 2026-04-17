@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}Product Details — {{ product.name }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2>{{ product.image }} {{ product.name }}</h2>
+  <div>
+    <a href="{{ url_for('seller_edit_product', product_id=product.id) }}" class="btn btn-outline">✏️ Edit</a>
+    <a href="{{ url_for('seller_products') }}" class="btn btn-outline">← Back</a>
+  </div>
+</div>
+
+<!-- PRODUCT INFO -->
+<div class="product-detail-card">
+  <div class="pd-row">
+    <div class="pd-info">
+      <div class="pd-price">${{ product.price }}
+        {% if product.get('discount',0) > 0 %}
+        <span class="discount-tag">{{ product.discount }}% OFF</span>
+        {% endif %}
+      </div>
+      <p class="muted">{{ product.description }}</p>
+      <div class="pd-meta">
+        <span>📦 Stock: <strong>{{ product.stock }}</strong></span>
+        <span>🏷️ Category: <strong>{{ product.category }}</strong></span>
+        <span>🛒 Orders: <strong>{{ product_orders|length }}</strong></span>
+      </div>
+    </div>
+    <div class="pd-stock-update">
+      <h4>Update Stock</h4>
+      <form method="POST" action="{{ url_for('seller_update_stock', product_id=product.id) }}">
+        <input type="number" name="stock" value="{{ product.stock }}" min="0" class="stock-big-input">
+        <button type="submit" class="btn btn-primary btn-full mt">📦 Update Stock</button>
+      </form>
+      <a href="{{ url_for('seller_launch_product', product_id=product.id) }}"
+         class="btn btn-outline btn-full mt"
+         onclick="return confirm('Send launch notification to all followers?')">
+        🚀 Launch / Notify Followers
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- BERT REVIEW ANALYSIS -->
+{% if bert_result %}
+<div class="bert-results mt">
+  <h3>🧠 BERT Review Analysis <span class="bert-badge">~91% Accuracy</span></h3>
+  <div class="verdict-banner">
+    <span class="verdict-text">{{ bert_result.verdict }}</span>
+    <span class="star-display">{{ bert_result.stars_display }} {{ bert_result.star_rating }}/5</span>
+  </div>
+  <div class="bert-stats-row">
+    <div class="bert-stat good">
+      <div class="bert-stat-num">{{ bert_result.summary['Good Review'] }}</div>
+      <div>✅ Good</div><div class="bert-pct">{{ bert_result.good_pct }}%</div>
+    </div>
+    <div class="bert-stat bad">
+      <div class="bert-stat-num">{{ bert_result.summary['Bad Review'] }}</div>
+      <div>❌ Bad</div><div class="bert-pct">{{ bert_result.bad_pct }}%</div>
+    </div>
+    <div class="bert-stat total">
+      <div class="bert-stat-num">{{ bert_result.summary['Total'] }}</div>
+      <div>📝 Total</div>
+    </div>
+  </div>
+  <div class="sentiment-bar-wrap">
+    <div class="sentiment-bar">
+      <div class="bar-good" style="width:{{ bert_result.good_pct }}%">{{ bert_result.good_pct }}% Good</div>
+      <div class="bar-bad"  style="width:{{ bert_result.bad_pct }}%">{{ bert_result.bad_pct }}% Bad</div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- CUSTOMER REVIEWS -->
+<h3 class="mt">⭐ Customer Reviews ({{ reviews|length }})</h3>
+{% if reviews %}
+<div class="review-list">
+{% for r in reviews %}
+<div class="review-item-full">
+  <div class="review-top">
+    <strong>{{ r.user_name }}</strong>
+    <span class="star-rating-display">{{ '⭐' * r.rating }}{{ '☆' * (5 - r.rating) }}</span>
+    <span class="muted small">{{ r.date }}</span>
+  </div>
+  <p>"{{ r.review }}"</p>
+</div>
+{% endfor %}
+</div>
+{% else %}
+<p class="muted">No reviews yet for this product.</p>
+{% endif %}
+
+<!-- ORDERS -->
+<h3 class="mt">🛒 Orders for this Product ({{ product_orders|length }})</h3>
+{% if product_orders %}
+<table class="data-table">
+  <thead><tr><th>Order ID</th><th>Price</th><th>Status</th><th>Date</th></tr></thead>
+  <tbody>
+  {% for o in product_orders %}
+  <tr>
+    <td>#{{ o.id }}</td>
+    <td>${{ o.price }}</td>
+    <td><span class="badge badge-{{ 'success' if o.status=='Delivered' else 'warn' }}">{{ o.status }}</span></td>
+    <td>{{ o.date }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="muted">No orders yet.</p>
+{% endif %}
+{% endblock %}

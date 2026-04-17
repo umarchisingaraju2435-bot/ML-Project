@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+{% block title %}Seller Intelligence Dashboard{% endblock %}
+{% block content %}
+<h2>📊 Seller Intelligence Dashboard</h2>
+<p class="subtitle">Agentic ML system: Sentiment Analysis + Price Trends + Strategic Recommendations</p>
+
+<div class="tab-container">
+    <div class="tabs">
+        <button class="tab-btn active" onclick="showTab('full')">🚀 Full Analysis</button>
+        <button class="tab-btn" onclick="showTab('sentiment')">💬 Sentiment Only</button>
+        <button class="tab-btn" onclick="showTab('price')">📈 Price Trends</button>
+    </div>
+
+    <!-- FULL ANALYSIS TAB -->
+    <div id="tab-full" class="tab-content active">
+        <form method="POST">
+            <input type="hidden" name="action" value="full_analysis">
+            <div class="form-group">
+                <label>Customer Reviews (one per line)</label>
+                <textarea name="reviews_full" rows="6" placeholder="Great product, fast delivery!&#10;Terrible quality, broke after 2 days&#10;Average, nothing special">Great product, fast delivery!
+Terrible quality, broke after 2 days
+Amazing service, highly recommend
+Poor packaging, item was damaged
+Excellent value for money</textarea>
+            </div>
+            <div class="form-group">
+                <label>Your Current Price ($)</label>
+                <input type="number" name="your_price_full" value="99.99" step="0.01">
+            </div>
+            <button type="submit" class="btn btn-primary">🤖 Run Full AI Analysis</button>
+        </form>
+    </div>
+
+    <!-- SENTIMENT TAB -->
+    <div id="tab-sentiment" class="tab-content">
+        <form method="POST">
+            <input type="hidden" name="action" value="sentiment">
+            <div class="form-group">
+                <label>Customer Reviews (one per line)</label>
+                <textarea name="reviews" rows="6" placeholder="Enter reviews here..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Analyze Sentiment</button>
+        </form>
+    </div>
+
+    <!-- PRICE TAB -->
+    <div id="tab-price" class="tab-content">
+        <form method="POST">
+            <input type="hidden" name="action" value="price">
+            <div class="form-group">
+                <label>Your Price ($)</label>
+                <input type="number" name="your_price" value="100" step="0.01">
+            </div>
+            <div id="competitors">
+                <div class="competitor-row">
+                    <input type="text" name="comp_name" placeholder="Competitor name" value="Competitor A">
+                    <input type="text" name="comp_prices" placeholder="Prices: 95,92,88,85" value="95,92,88,85">
+                </div>
+                <div class="competitor-row">
+                    <input type="text" name="comp_name" placeholder="Competitor name" value="Competitor B">
+                    <input type="text" name="comp_prices" placeholder="Prices: 110,112,115" value="110,112,115,118">
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Analyze Prices</button>
+        </form>
+    </div>
+</div>
+
+<!-- RESULTS -->
+{% if results %}
+<div class="results-section">
+    {% if results.type == 'sentiment' %}
+        <h3>💬 Sentiment Analysis Results</h3>
+        <div class="score-card">
+            <span>Overall Score: <strong>{{ results.data.score }}</strong></span>
+            <span class="badge {% if results.data.score > 0 %}badge-success{% elif results.data.score < 0 %}badge-danger{% else %}badge-warning{% endif %}">
+                {% if results.data.score > 0 %}Positive Market{% elif results.data.score < 0 %}Negative Market{% else %}Neutral{% endif %}
+            </span>
+        </div>
+        <div class="summary-grid">
+            {% for label, count in results.data.summary.items() %}
+            <div class="summary-item">
+                <div class="summary-count">{{ count }}</div>
+                <div>{{ label }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        <table class="results-table">
+            <thead><tr><th>Review</th><th>Sentiment</th></tr></thead>
+            <tbody>
+            {% for r in results.data.results %}
+            <tr>
+                <td>{{ r.review }}</td>
+                <td><span class="badge badge-{{ 'success' if r.sentiment == 'Positive' else 'danger' if r.sentiment == 'Negative' else 'warning' }}">{{ r.sentiment }}</span></td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+    {% elif results.type == 'price' %}
+        <h3>📈 Price Trend Analysis</h3>
+        {% for comp in results.data.trends %}
+        <div class="trend-card">
+            <h4>{{ comp.name }}</h4>
+            <div class="trend-stats">
+                <span>Current: <strong>${{ comp.current_price }}</strong></span>
+                <span>Change: <strong class="{{ 'text-danger' if comp.change > 0 else 'text-success' }}">{{ comp.pct_change }}%</strong></span>
+                <span class="badge badge-{{ 'danger' if comp.trend == 'Rising' else 'success' if comp.trend == 'Falling' else 'warning' }}">{{ comp.trend }}</span>
+            </div>
+        </div>
+        {% endfor %}
+        <h3>🤖 AI Strategy Recommendations</h3>
+        {% for action in results.data.strategy %}
+        <div class="strategy-card priority-{{ action.priority.lower() }}">
+            <div class="strategy-header">{{ action.icon }} <strong>{{ action.action }}</strong> <span class="priority-badge">{{ action.priority }}</span></div>
+            <p><em>Why:</em> {{ action.reason }}</p>
+            <p><em>Action:</em> {{ action.suggestion }}</p>
+        </div>
+        {% endfor %}
+
+    {% elif results.type == 'full' %}
+        <h3>🚀 Full AI Analysis Report</h3>
+
+        <div class="score-card">
+            <span>Sentiment Score: <strong>{{ results.sentiment.score }}</strong></span>
+            <span class="badge {% if results.sentiment.score > 0 %}badge-success{% elif results.sentiment.score < 0 %}badge-danger{% else %}badge-warning{% endif %}">
+                {% if results.sentiment.score > 0 %}Positive{% elif results.sentiment.score < 0 %}Negative{% else %}Neutral{% endif %}
+            </span>
+        </div>
+
+        <div class="summary-grid">
+            {% for label, count in results.sentiment.summary.items() %}
+            <div class="summary-item">
+                <div class="summary-count">{{ count }}</div>
+                <div>{{ label }}</div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <h4>📈 Competitor Price Trends</h4>
+        {% for comp in results.trends %}
+        <div class="trend-card">
+            <strong>{{ comp.name }}</strong> — ${{ comp.current_price }}
+            <span class="badge badge-{{ 'danger' if comp.trend == 'Rising' else 'success' if comp.trend == 'Falling' else 'warning' }}">{{ comp.trend }} ({{ comp.pct_change }}%)</span>
+        </div>
+        {% endfor %}
+
+        <h4>🤖 Strategic Recommendations</h4>
+        {% for action in results.strategy %}
+        <div class="strategy-card priority-{{ action.priority.lower() }}">
+            <div class="strategy-header">{{ action.icon }} <strong>{{ action.action }}</strong> <span class="priority-badge">{{ action.priority }}</span></div>
+            <p><em>Why:</em> {{ action.reason }}</p>
+            <p>💡 {{ action.suggestion }}</p>
+        </div>
+        {% endfor %}
+
+        <h4>💬 Review Details</h4>
+        <table class="results-table">
+            <thead><tr><th>Review</th><th>Sentiment</th></tr></thead>
+            <tbody>
+            {% for r in results.sentiment.results %}
+            <tr>
+                <td>{{ r.review }}</td>
+                <td><span class="badge badge-{{ 'success' if r.sentiment == 'Positive' else 'danger' if r.sentiment == 'Negative' else 'warning' }}">{{ r.sentiment }}</span></td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+</div>
+{% endif %}
+
+<script>
+function showTab(name) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    event.target.classList.add('active');
+}
+</script>
+{% endblock %}

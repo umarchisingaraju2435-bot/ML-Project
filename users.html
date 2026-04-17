@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Manage Users{% endblock %}
+{% block content %}
+<div class="page-header"><h2>👥 All Users</h2></div>
+<table class="data-table">
+  <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Role</th></tr></thead>
+  <tbody>
+  {% for u in users %}
+  <tr>
+    <td>{{ u.id }}</td>
+    <td><strong>{{ u.name }}</strong></td>
+    <td>{{ u.email }}</td>
+    <td><span class="badge badge-{{ 'success' if u.role=='seller' else 'warn' if u.role=='customer' else 'info' }}">{{ u.role }}</span></td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+<a href="{{ url_for('dashboard') }}" class="btn btn-outline mt">← Back</a>
+{% endblock %}

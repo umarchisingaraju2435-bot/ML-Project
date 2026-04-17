@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Online Interview{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2>🎤 {{ tr('interview') }}</h2>
+  <span class="muted">{{ job.title }} @ {{ job.company }} | {{ questions|length }} Questions</span>
+</div>
+<form method="POST">
+  {% for q in questions %}
+  <div class="q-card">
+    <div class="q-head">
+      <span class="q-num">Q{{ loop.index }}</span>
+      <span class="q-cat">{{ q.category }}</span>
+    </div>
+    <p class="q-text">{{ q.question }}</p>
+    <textarea name="ans_{{ loop.index0 }}" rows="4" placeholder="Your answer..."></textarea>
+  </div>
+  {% endfor %}
+  <div class="submit-row">
+    <button type="submit" class="btn btn-primary btn-full">📤 Submit Interview</button>
+  </div>
+</form>
+{% endblock %}

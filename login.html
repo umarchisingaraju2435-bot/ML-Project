@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-logo">🔐</div>
+    <h2>Login</h2>
+    <p class="auth-sub">{{ tr('choose_role') }}</p>
+
+    <div class="role-tabs">
+      <button class="rtab active" onclick="fillDemo('seller@site.com','seller123',this)">🏪 Seller</button>
+      <button class="rtab" onclick="fillDemo('customer@site.com','customer123',this)">👤 Customer</button>
+      <button class="rtab" onclick="fillDemo('owner@site.com','owner123',this)">🌐 Owner</button>
+    </div>
+
+    <form method="POST">
+      <div class="form-group">
+        <label>{{ tr('email') }}</label>
+        <input type="email" name="email" id="emailInput" required placeholder="your@email.com" autofocus>
+      </div>
+      <div class="form-group">
+        <label>{{ tr('password') }}</label>
+        <input type="password" name="password" id="passInput" required placeholder="••••••••">
+      </div>
+
+      <div class="demo-hint">
+        <strong>🧪 Demo Accounts:</strong><br>
+        🏪 seller@site.com / seller123<br>
+        🏪 ahmed@seller.com / seller123<br>
+        🏪 priya@seller.com / priya123<br>
+        🏪 meera@seller.com / meera123<br>
+        👤 customer@site.com / customer123<br>
+        👤 john@customer.com / john123<br>
+        🌐 owner@site.com / owner123
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-full">{{ tr('login') }}</button>
+    </form>
+    <p class="auth-link">No account? <a href="{{ url_for('register') }}">{{ tr('register') }}</a></p>
+  </div>
+</div>
+
+<script>
+function fillDemo(email, pass, btn) {
+  document.getElementById('emailInput').value = email;
+  document.getElementById('passInput').value  = pass;
+  document.querySelectorAll('.rtab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+// Auto-fill seller on load
+document.getElementById('emailInput').value    = 'seller@site.com';
+document.getElementById('passInput').value     = 'seller123';
+</script>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Resume Improvement Suggestions{% endblock %}
+{% block content %}
+<h2>✨ Resume Enhancement</h2>
+<div class="job-info-bar">
+    <strong>Candidate:</strong> {{ resume.name }} &nbsp;|&nbsp; <strong>Target Job:</strong> {{ job.title }} @ {{ job.company }}
+</div>
+
+<div class="suggestions-container">
+    <h3>💡 ML-Powered Improvement Suggestions</h3>
+    {% for suggestion in suggestions %}
+    <div class="suggestion-item">
+        <span class="suggestion-icon">→</span>
+        {{ suggestion }}
+    </div>
+    {% endfor %}
+</div>
+
+<div class="resume-preview">
+    <h3>📄 Current Resume Preview</h3>
+    <div class="resume-text">{{ resume.text[:500] }}{% if resume.text|length > 500 %}...{% endif %}</div>
+</div>
+
+<div class="action-buttons">
+    <a href="{{ url_for('interview', resume_id=resume.id, job_id=job.id) }}" class="btn btn-primary">🎤 Start Interview</a>
+    <a href="{{ url_for('recruitment') }}" class="btn btn-secondary">← Back</a>
+</div>
+{% endblock %}

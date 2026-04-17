@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Recruitment Portal{% endblock %}
+{% block content %}
+<h2>🏢 Recruitment Portal</h2>
+<p class="subtitle">ML-powered resume screening, matching, and online interviews</p>
+
+<div class="stats-bar">
+    <span>📄 {{ resumes|length }} Resumes Uploaded</span>
+    <span>💼 {{ jobs|length }} Open Positions</span>
+    <a href="{{ url_for('upload_resume') }}" class="btn btn-primary">+ Upload Resume</a>
+</div>
+
+<h3>💼 Open Positions</h3>
+<div class="jobs-grid">
+{% for job in jobs %}
+<div class="job-card">
+    <div class="job-header">
+        <h4>{{ job.title }}</h4>
+        <span class="company-badge">{{ job.company }}</span>
+    </div>
+    <p class="job-desc">{{ job.description[:120] }}...</p>
+    <div class="job-actions">
+        <a href="{{ url_for('match_job_resumes', job_id=job.id) }}" class="btn btn-primary">
+            🔍 Match Resumes ({{ resumes|length }})
+        </a>
+    </div>
+</div>
+{% endfor %}
+</div>
+
+{% if resumes %}
+<h3>📄 Uploaded Resumes</h3>
+<table class="results-table">
+    <thead>
+        <tr><th>#</th><th>Name</th><th>Email</th><th>Preview</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+    {% for r in resumes %}
+    <tr>
+        <td>{{ r.id }}</td>
+        <td><strong>{{ r.name }}</strong></td>
+        <td>{{ r.email }}</td>
+        <td>{{ r.text[:80] }}...</td>
+        <td>
+            <a href="{{ url_for('improve_resume', resume_id=r.id, job_id=1) }}" class="btn btn-sm btn-secondary">✨ Improve</a>
+            <a href="{{ url_for('interview', resume_id=r.id, job_id=1) }}" class="btn btn-sm btn-primary">🎤 Interview</a>
+        </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div class="empty-state">
+    <p>No resumes uploaded yet.</p>
+    <a href="{{ url_for('upload_resume') }}" class="btn btn-primary">Upload First Resume</a>
+</div>
+{% endif %}
+{% endblock %}

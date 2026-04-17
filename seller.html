@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}{{ seller.get('shop_name', seller.name) }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <button onclick="history.back()" class="btn btn-outline btn-sm">← Back</button>
+</div>
+<div class="seller-store-header">
+  <div class="seller-store-avatar">{{ seller.avatar }}</div>
+  <div class="seller-store-info">
+    <h2>{{ seller.get('shop_name', seller.name) }}</h2>
+    <p class="muted">{{ seller.get('shop_desc','') }}</p>
+    <div class="seller-store-meta">
+      <span>📦 {{ products|length }} Products</span>
+      <span>⭐ {{ reviews|length }} Reviews</span>
+      <span>👥 {{ followers }} Followers</span>
+    </div>
+    {% if session.get('role') == 'customer' %}
+      {% if following %}
+      <a href="{{ url_for('unfollow_seller', seller_id=seller.id) }}" class="btn btn-outline mt">✅ Following</a>
+      {% else %}
+      <a href="{{ url_for('follow_seller', seller_id=seller.id) }}" class="btn btn-primary mt">+ Follow Store</a>
+      {% endif %}
+    {% endif %}
+  </div>
+</div>
+
+<h3 class="mt">📦 Products</h3>
+<div class="shop-grid mt">
+{% for p in products %}
+<div class="shop-card">
+  {% if p.get('discount',0) > 0 %}<div class="shop-discount-badge">{{ p.discount }}% OFF</div>{% endif %}
+  <a href="{{ url_for('shop_product', product_id=p.id) }}" class="shop-card-img">
+    <span class="shop-product-icon">{{ p.image }}</span>
+  </a>
+  <div class="shop-card-body">
+    <a href="{{ url_for('shop_product', product_id=p.id) }}" class="shop-card-name">{{ p.name }}</a>
+    <div class="shop-card-price">
+      {% if p.get('discount',0) > 0 %}
+      <span class="original-price">${{ p.price }}</span>
+      <span class="discounted-price">${{ (p.price*(1-p.discount/100))|round(2) }}</span>
+      {% else %}
+      <span class="discounted-price">${{ p.price }}</span>
+      {% endif %}
+    </div>
+    <div class="shop-card-actions">
+      {% if session.get('role') == 'customer' and p.stock > 0 %}
+      <a href="{{ url_for('cart_add', product_id=p.id) }}" class="btn btn-primary btn-sm">🛒 Add to Cart</a>
+      {% elif p.stock == 0 %}
+      <span class="badge badge-danger">Out of Stock</span>
+      {% else %}
+      <a href="{{ url_for('login') }}" class="btn btn-primary btn-sm">Login to Buy</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% else %}
+<div class="empty-state">No products yet.</div>
+{% endfor %}
+</div>
+{% endblock %}

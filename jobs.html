@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Jobs & Recruitment{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2>💼 {{ tr('jobs') }} & Recruitment</h2>
+  <a href="{{ url_for('post_job') }}" class="btn btn-primary">➕ {{ tr('post_job') }}</a>
+</div>
+
+<h3>📋 Your Job Postings</h3>
+{% if jobs %}
+<div class="jobs-grid">
+{% for j in jobs %}
+<div class="job-card">
+  <div class="job-top">
+    <h4>{{ j.title }}</h4>
+    <span class="company-tag">{{ j.company }}</span>
+  </div>
+  <p class="muted">📍 {{ j.location }} &nbsp;|&nbsp; 💰 {{ j.salary }}</p>
+  <p class="job-desc">{{ j.description[:100] }}...</p>
+  <div class="job-btns">
+    <a href="{{ url_for('seller_match', job_id=j.id) }}" class="btn btn-sm btn-primary">🔍 Match Resumes</a>
+  </div>
+</div>
+{% endfor %}
+</div>
+{% else %}
+<div class="empty-state">No jobs posted yet. <a href="{{ url_for('post_job') }}">Post your first job →</a></div>
+{% endif %}
+
+<h3 class="mt">📩 All Applications</h3>
+{% if applications %}
+<table class="data-table">
+  <thead><tr><th>Applicant</th><th>Email</th><th>Job</th><th>Status</th><th>Date</th><th>Resume</th></tr></thead>
+  <tbody>
+  {% for a in applications %}
+  <tr>
+    <td><strong>{{ a.name }}</strong></td>
+    <td>{{ a.email }}</td>
+    <td>{{ jobs | selectattr('id','eq',a.job_id) | map(attribute='title') | first | default('N/A') }}</td>
+    <td><span class="badge badge-success">{{ a.status }}</span></td>
+    <td>{{ a.applied }}</td>
+    <td><a href="{{ url_for('view_resume', resume_id=a.resume_id) }}" class="btn btn-sm btn-outline">View</a></td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="muted">No applications received yet.</p>
+{% endif %}
+{% endblock %}

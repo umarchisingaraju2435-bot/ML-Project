@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block title %}IntelliMarket Shop{% endblock %}
+{% block content %}
+<div class="shop-layout">
+
+  <!-- SIDEBAR -->
+  <div class="shop-sidebar">
+    <div class="sidebar-section">
+      <h4>🔍 Search</h4>
+      <form method="GET">
+        <input type="text" name="q" value="{{ q }}" placeholder="Search products..." class="sidebar-search">
+        <button type="submit" class="btn btn-primary btn-full mt">Search</button>
+      </form>
+    </div>
+
+    <div class="sidebar-section">
+      <h4>📂 Categories</h4>
+      <a href="{{ url_for('shop') }}" class="cat-link {{ 'active' if not cat else '' }}">All ({{ total }})</a>
+      {% for c in all_cats %}
+      <a href="{{ url_for('shop', cat=c, q=q) }}" class="cat-link {{ 'active' if cat==c else '' }}">{{ c }}</a>
+      {% endfor %}
+    </div>
+
+    <div class="sidebar-section">
+      <h4>💰 Price Range</h4>
+      <form method="GET">
+        <input type="hidden" name="q"   value="{{ q }}">
+        <input type="hidden" name="cat" value="{{ cat }}">
+        <div class="price-range">
+          <input type="number" name="min_price" value="{{ min_p if min_p > 0 else '' }}" placeholder="Min $" class="price-input">
+          <span class="muted">—</span>
+          <input type="number" name="max_price" value="{{ max_p if max_p < 99999 else '' }}" placeholder="Max $" class="price-input">
+        </div>
+        <button type="submit" class="btn btn-outline btn-full mt">Apply</button>
+      </form>
+    </div>
+
+    <div class="sidebar-section">
+      <h4>🏪 Sellers</h4>
+      <a href="{{ url_for('shop') }}" class="cat-link {{ 'active' if not seller_id else '' }}">All Sellers</a>
+      {% for s in all_sellers %}
+      <a href="{{ url_for('shop', seller=s.id) }}" class="cat-link {{ 'active' if seller_id==s.id else '' }}">
+        {{ s.avatar }} {{ s.get('shop_name', s.name) }}
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="shop-main">
+    <div class="shop-topbar">
+      <div class="muted">
+        <strong>{{ total }}</strong> products
+        {% if q %} for "<em>{{ q }}</em>"{% endif %}
+        {% if cat %} in <em>{{ cat }}</em>{% endif %}
+      </div>
+      <div class="sort-bar">
+        <span class="muted small">Sort:</span>
+        {% for sv, sl in [('popular','Popular'),('newest','Newest'),('price_low','Price ↑'),('price_high','Price ↓'),('rating','Rating'),('discount','Discount')] %}
+        <a href="{{ url_for('shop', q=q, cat=cat, sort=sv, min_price=min_p, max_price=max_p) }}"
+           class="sort-btn {{ 'active' if sort==sv else '' }}">{{ sl }}</a>
+        {% endfor %}
+      </div>
+    </div>
+
+    {% if products %}
+    <div class="shop-grid">
+    {% for p in products %}
+    <div class="shop-card">
+      {% if p.get('discount',0) > 0 %}
+      <div class="shop-discount-badge">{{ p.discount }}% OFF</div>
+      {% endif %}
+      <a href="{{ url_for('shop_product', product_id=p.id) }}" class="shop-card-img">
+        {% if p.get('image_url') %}
+        <img src="{{ p.image_url }}" alt="{{ p.name }}" style="width:100px;height:100px;object-fit:cover;border-radius:8px">
+        {% else %}
+        <span class="shop-product-icon">{{ p.image }}</span>
+        {% endif %}
+      </a>
+      <div class="shop-card-body">
+        <a href="{{ url_for('shop_product', product_id=p.id) }}" class="shop-card-name">{{ p.name }}</a>
+        {% set seller = all_sellers|selectattr('id','eq',p.seller_id)|first %}
+        {% if seller %}
+        <a href="{{ url_for('shop_seller', seller_id=p.seller_id) }}" class="seller-link">
+          {{ seller.avatar }} {{ seller.get('shop_name', seller.name) }}
+        </a>
+        {% endif %}
+        <div class="shop-card-rating">
+          {% for i in range(p.get('rating',0)|int) %}⭐{% endfor %}
+          <span class="muted small">({{ p.get('review_count',0) }})</span>
+        </div>
+        <div class="shop-card-price">
+          {% if p.get('discount',0) > 0 %}
+          <span class="original-price">${{ p.price }}</span>
+          <span class="discounted-price">${{ (p.price*(1-p.discount/100))|round(2) }}</span>
+          {% else %}
+          <span class="discounted-price">${{ p.price }}</span>
+          {% endif %}
+        </div>
+        {% if p.stock == 0 %}
+        <div class="out-of-stock">❌ Out of Stock</div>
+        {% elif p.stock < 5 %}
+        <div class="low-stock-warn">⚠️ Only {{ p.stock }} left!</div>
+        {% endif %}
+        <div class="shop-card-actions">
+          {% if session.get('role') == 'customer' %}
+            {% if p.stock > 0 %}
+            <a href="{{ url_for('cart_add', product_id=p.id) }}" class="btn btn-primary btn-sm">🛒 Cart</a>
+            <a href="{{ url_for('checkout', product_id=p.id) }}"  class="btn btn-outline btn-sm">⚡ Buy</a>
+            {% else %}
+            <span class="badge badge-danger">Out of Stock</span>
+            {% endif %}
+            <a href="{{ url_for('wishlist_toggle', product_id=p.id) }}" class="wish-btn {{ 'wished' if p.id in wishlist else '' }}">
+              {{ '❤️' if p.id in wishlist else '🤍' }}
+            </a>
+          {% else %}
+          <a href="{{ url_for('login') }}" class="btn btn-primary btn-sm">Login to Buy</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+      No products found.
+      {% if q or cat %}<a href="{{ url_for('shop') }}">Clear filters →</a>{% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

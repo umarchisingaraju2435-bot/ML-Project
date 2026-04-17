@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}My Addresses{% endblock %}
+{% block content %}
+<div class="page-header">
+  <button onclick="history.back()" class="btn btn-outline btn-sm">← Back</button>
+  <h2>📍 My Addresses</h2>
+</div>
+
+{% if addresses %}
+<div class="addr-grid">
+{% for a in addresses %}
+<div class="addr-card-full {{ 'default-addr' if a.is_default else '' }}">
+  <div class="addr-top">
+    <div>
+      <strong>{{ a.full_name }}</strong>
+      <span class="addr-type-tag">{{ a.get('address_type','Home') }}</span>
+      {% if a.is_default %}<span class="badge badge-success">✅ Default</span>{% endif %}
+    </div>
+    <div style="display:flex;gap:.4rem">
+      {% if not a.is_default %}
+      <a href="{{ url_for('set_default_address', addr_id=a.id) }}" class="btn btn-sm btn-outline">Set Default</a>
+      {% endif %}
+      <a href="{{ url_for('delete_address', addr_id=a.id) }}" class="btn btn-sm btn-danger"
+         onclick="return confirm('Delete this address?')">🗑</a>
+    </div>
+  </div>
+  <p>{{ a.address }}</p>
+  <p>{{ a.city }}, {{ a.state }} — {{ a.pincode }}</p>
+  {% if a.landmark %}<p class="muted small">Landmark: {{ a.landmark }}</p>{% endif %}
+  <p class="muted small">📞 {{ a.phone }}</p>
+</div>
+{% endfor %}
+</div>
+{% endif %}
+
+<div class="form-card mt">
+  <h3>➕ Add New Address</h3>
+  <form method="POST">
+    <div class="form-row">
+      <div class="form-group flex1">
+        <label>Full Name *</label>
+        <input type="text" name="full_name" required placeholder="John Doe">
+      </div>
+      <div class="form-group flex1">
+        <label>Phone Number *</label>
+        <input type="tel" name="phone" required placeholder="9876543210">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Address *</label>
+      <textarea name="address" rows="2" required placeholder="House No, Street, Area"></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group flex1">
+        <label>City *</label>
+        <input type="text" name="city" required placeholder="Chennai">
+      </div>
+      <div class="form-group flex1">
+        <label>State *</label>
+        <input type="text" name="state" required placeholder="Tamil Nadu">
+      </div>
+      <div class="form-group" style="width:130px">
+        <label>Pincode *</label>
+        <input type="text" name="pincode" required placeholder="600001">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group flex1">
+        <label>Landmark</label>
+        <input type="text" name="landmark" placeholder="Near Bus Stop">
+      </div>
+      <div class="form-group flex1">
+        <label>Type</label>
+        <select name="address_type">
+          <option>Home</option><option>Work</option><option>Other</option>
+        </select>
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary">💾 Save Address</button>
+  </form>
+</div>
+{% endblock %}

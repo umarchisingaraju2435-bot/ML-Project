@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Platform Analytics{% endblock %}
+{% block content %}
+<div class="page-header"><h2>📊 Platform Analytics</h2></div>
+
+<div class="stats-row">
+  <div class="stat-card owner"><div class="stat-num">{{ users|length }}</div><div>Users</div></div>
+  <div class="stat-card owner"><div class="stat-num">{{ resumes|length }}</div><div>Resumes</div></div>
+  <div class="stat-card owner"><div class="stat-num">{{ jobs|length }}</div><div>Jobs</div></div>
+  <div class="stat-card owner"><div class="stat-num">{{ products|length }}</div><div>Products</div></div>
+  <div class="stat-card owner"><div class="stat-num">{{ orders|length }}</div><div>Orders</div></div>
+  <div class="stat-card owner"><div class="stat-num">{{ applications|length }}</div><div>Applications</div></div>
+</div>
+
+<h3 class="mt">📈 Stock Market Overview</h3>
+<div class="stocks-grid">
+{% for s in stocks %}
+<div class="stock-card {{ 'rising' if s.trend=='Rising' else 'falling' if s.trend=='Falling' else 'stable' }}">
+  <div class="stock-top">
+    <span class="ticker">{{ s.ticker }}</span>
+    <span class="badge badge-{{ 'success' if s.trend=='Rising' else 'danger' if s.trend=='Falling' else 'warn' }}">{{ s.trend }}</span>
+  </div>
+  <div class="stock-name">{{ s.name }}</div>
+  <div class="stock-price">${{ s.current }}</div>
+  <div class="stock-change {{ 'text-green' if s.change > 0 else 'text-red' }}">
+    {{ '+' if s.change > 0 else '' }}{{ s.change }} ({{ s.pct }}%)
+  </div>
+  <div class="mini-chart">
+    {% for p in s.prices %}
+    <div class="bar" style="height:{{ ((p - s.prices|min) / ((s.prices|max - s.prices|min) or 1) * 50 + 10)|int }}px"></div>
+    {% endfor %}
+  </div>
+</div>
+{% endfor %}
+</div>
+
+<div class="dash-grid mt">
+  <div class="dash-section">
+    <h3>👥 Users by Role</h3>
+    {% set sellers   = users | selectattr('role','eq','seller')   | list %}
+    {% set customers = users | selectattr('role','eq','customer') | list %}
+    {% set owners    = users | selectattr('role','eq','owner')    | list %}
+    <div class="role-breakdown">
+      <div class="rb-item"><span class="rb-num">{{ sellers|length }}</span> Sellers</div>
+      <div class="rb-item"><span class="rb-num">{{ customers|length }}</span> Customers</div>
+      <div class="rb-item"><span class="rb-num">{{ owners|length }}</span> Owners</div>
+    </div>
+  </div>
+  <div class="dash-section">
+    <h3>📦 Platform Activity</h3>
+    <div class="activity-list">
+      <div class="act-item">📄 Resumes uploaded: <strong>{{ resumes|length }}</strong></div>
+      <div class="act-item">💼 Jobs posted: <strong>{{ jobs|length }}</strong></div>
+      <div class="act-item">📩 Applications: <strong>{{ applications|length }}</strong></div>
+      <div class="act-item">🛒 Orders placed: <strong>{{ orders|length }}</strong></div>
+    </div>
+  </div>
+</div>
+{% endblock %}

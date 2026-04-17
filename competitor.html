@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}Competitor Analysis{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2>🏆 Competitor Analysis</h2>
+  <span class="muted">Regular monitoring with AI strategy</span>
+</div>
+
+<div class="form-card">
+  <form method="POST">
+    <div class="form-row">
+      <div class="form-group flex1">
+        <label>Your Product Name</label>
+        <input type="text" name="your_product" placeholder="e.g. My Wireless Headphones" value="{{ results.your_product if results else '' }}">
+      </div>
+      <div class="form-group">
+        <label>Your Price ($)</label>
+        <input type="number" name="your_price" step="0.01" value="{{ results.your_price if results else 100 }}" style="width:130px">
+      </div>
+    </div>
+
+    <h4>Competitor Prices (comma-separated history)</h4>
+    <div class="comp-rows">
+      <div class="comp-row">
+        <input type="text" name="comp_name"   placeholder="Competitor A" value="Competitor A">
+        <input type="text" name="comp_prices" placeholder="95,92,88,85,83" value="95,92,88,85,83">
+      </div>
+      <div class="comp-row">
+        <input type="text" name="comp_name"   placeholder="Competitor B" value="Competitor B">
+        <input type="text" name="comp_prices" placeholder="110,112,115,118" value="110,112,115,118,120">
+      </div>
+      <div class="comp-row">
+        <input type="text" name="comp_name"   placeholder="Competitor C" value="Competitor C">
+        <input type="text" name="comp_prices" placeholder="78,76,74,72,70" value="78,76,74,72,70">
+      </div>
+    </div>
+
+    <div class="form-group mt">
+      <label>Customer Reviews (for sentiment analysis)</label>
+      <textarea name="reviews" rows="4"
+        placeholder="Paste customer reviews here to compare sentiment...">Great product, works perfectly!
+Terrible quality, very disappointed.
+Good value for money.
+Excellent service and fast delivery!</textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">🔍 Analyze Competitors</button>
+  </form>
+</div>
+
+{% if results %}
+<div class="results-wrap mt">
+
+  <!-- PRICE COMPARISON -->
+  <h3>📊 Price Comparison — {{ results.your_product }}</h3>
+  <div class="price-compare-grid">
+    <div class="price-card your-price">
+      <div class="pc-label">YOUR PRICE</div>
+      <div class="pc-price">${{ results.your_price }}</div>
+    </div>
+    {% for c in results.trends %}
+    <div class="price-card comp-price {{ 'cheaper' if c.current_price < results.your_price else 'expensive' }}">
+      <div class="pc-label">{{ c.name }}</div>
+      <div class="pc-price">${{ c.current_price }}</div>
+      <div class="pc-diff {{ 'text-red' if c.current_price < results.your_price else 'text-green' }}">
+        {% if c.current_price < results.your_price %}
+        ⚠️ ${{ (results.your_price - c.current_price)|round(2) }} cheaper than you
+        {% else %}
+        ✅ ${{ (c.current_price - results.your_price)|round(2) }} more expensive
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- TREND ANALYSIS -->
+  <h3 class="mt">📈 Price Trend Analysis</h3>
+  {% for c in results.trends %}
+  <div class="trend-row">
+    <strong>{{ c.name }}</strong>
+    <span>Current: ${{ c.current_price }}</span>
+    <span>Change: <span class="{{ 'text-red' if c.change > 0 else 'text-green' }}">{{ c.pct_change }}%</span></span>
+    <span class="badge badge-{{ 'danger' if c.trend=='Rising' else 'success' if c.trend=='Falling' else 'warn' }}">{{ c.trend }}</span>
+    <div class="mini-chart">
+      {% for p in c.moving_avg %}
+      <div class="bar" style="height:{{ ((p - c.moving_avg|min) / ((c.moving_avg|max - c.moving_avg|min) or 1) * 40 + 8)|int }}px"></div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+
+  <!-- SENTIMENT -->
+  <h3 class="mt">💬 Customer Sentiment</h3>
+  <div class="score-bar">
+    <span>Score: <strong>{{ results.sentiment.score }}</strong></span>
+    <span class="badge badge-{{ 'success' if results.sentiment.score > 0 else 'danger' if results.sentiment.score < 0 else 'warn' }}">
+      {% if results.sentiment.score > 0 %}Positive{% elif results.sentiment.score < 0 %}Negative{% else %}Neutral{% endif %}
+    </span>
+  </div>
+
+  <!-- AI STRATEGY -->
+  <h3 class="mt">🤖 AI Strategy Recommendations</h3>
+  {% for s in results.strategy %}
+  <div class="strategy-card p-{{ s.priority|lower }}">
+    <div class="s-head">{{ s.icon }} <strong>{{ s.action }}</strong><span class="p-tag">{{ s.priority }}</span></div>
+    <p>📌 {{ s.reason }}</p>
+    <p>💡 {{ s.suggestion }}</p>
+  </div>
+  {% endfor %}
+
+</div>
+{% endif %}
+{% endblock %}

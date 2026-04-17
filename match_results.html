@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Resume Match Results{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2>🔍 Resume Match — {{ job.title }}</h2>
+  <span class="muted">{{ job.company }} | TF-IDF Cosine Similarity</span>
+</div>
+{% for r in ranked %}
+<div class="rank-card {% if loop.index == 1 %}top-rank{% endif %}">
+  <div class="rank-num">#{{ loop.index }}</div>
+  <div class="rank-info">
+    <h4>{{ r.name }} {% if loop.index == 1 %}🏆{% endif %}</h4>
+    <p class="muted">{{ r.email }}</p>
+    <p class="preview">{{ r.text_preview }}</p>
+  </div>
+  <div class="rank-score">
+    <div class="score-circle sc-{{ 'high' if r.score >= 50 else 'mid' if r.score >= 30 else 'low' }}">
+      {{ r.score }}%
+    </div>
+    <div class="grade">{{ r.grade }}</div>
+  </div>
+</div>
+{% else %}
+<div class="empty-state">No resumes uploaded yet.</div>
+{% endfor %}
+<a href="{{ url_for('seller_jobs') }}" class="btn btn-outline mt">← Back</a>
+{% endblock %}

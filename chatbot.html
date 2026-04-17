@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}AI Strategy Chatbot{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2>🤖 AI Business Strategy Chatbot</h2>
+  <span class="bert-badge">Powered by ML + BERT</span>
+</div>
+
+<div class="chat-layout">
+  <!-- CHAT WINDOW -->
+  <div class="chat-main">
+    <div class="chat-window" id="chatWindow">
+      {% if not history %}
+      <div class="chat-welcome">
+        <div class="chat-bot-icon">🤖</div>
+        <h3>Hello! I'm your AI Business Assistant</h3>
+        <p>I can help you with strategy, reviews, stock, revenue and competitor analysis.</p>
+        <div class="quick-prompts">
+          <button onclick="sendQuick('Give me a sales strategy plan')" class="qp-btn">📊 Sales Strategy</button>
+          <button onclick="sendQuick('Analyze my customer reviews')" class="qp-btn">⭐ Review Analysis</button>
+          <button onclick="sendQuick('Check my stock levels')" class="qp-btn">📦 Stock Status</button>
+          <button onclick="sendQuick('Show my revenue summary')" class="qp-btn">💰 Revenue</button>
+          <button onclick="sendQuick('Competitor analysis tips')" class="qp-btn">🏆 Competitors</button>
+          <button onclick="sendQuick('How to increase my sales?')" class="qp-btn">🚀 Grow Sales</button>
+        </div>
+      </div>
+      {% endif %}
+
+      {% for msg in history %}
+      <div class="chat-msg {{ 'user-msg' if msg.role == 'user' else 'bot-msg' }}">
+        <div class="msg-avatar">{{ '👤' if msg.role == 'user' else '🤖' }}</div>
+        <div class="msg-bubble">{{ msg.text | replace('\n','<br>') | safe }}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <form method="POST" class="chat-input-form" id="chatForm">
+      <input type="text" name="message" id="msgInput"
+             placeholder="Ask about strategy, reviews, stock, revenue, competitors..."
+             autocomplete="off" required>
+      <button type="submit" class="btn btn-primary">Send ➤</button>
+    </form>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="chat-sidebar">
+    <h4>📦 Your Products</h4>
+    {% for p in products %}
+    <div class="sidebar-product {{ 'low-stock' if p.stock < 10 else '' }}">
+      <span>{{ p.image }} {{ p.name[:25] }}</span>
+      <span class="muted small">Stock: {{ p.stock }}</span>
+    </div>
+    {% endfor %}
+
+    <h4 class="mt">💡 Quick Questions</h4>
+    <div class="quick-prompts-side">
+      <button onclick="sendQuick('Give me a sales strategy plan')" class="qp-side-btn">📊 Strategy Plan</button>
+      <button onclick="sendQuick('Analyze my customer reviews')" class="qp-side-btn">⭐ Reviews</button>
+      <button onclick="sendQuick('Which products need restocking?')" class="qp-side-btn">📦 Low Stock</button>
+      <button onclick="sendQuick('Show my revenue summary')" class="qp-side-btn">💰 Revenue</button>
+      <button onclick="sendQuick('How to beat competitors?')" class="qp-side-btn">🏆 Competitors</button>
+      <button onclick="sendQuick('How to increase product ratings?')" class="qp-side-btn">⭐ Ratings</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function sendQuick(msg) {
+  document.getElementById('msgInput').value = msg;
+  document.getElementById('chatForm').submit();
+}
+// Auto scroll to bottom
+window.onload = function() {
+  var w = document.getElementById('chatWindow');
+  if(w) w.scrollTop = w.scrollHeight;
+}
+</script>
+{% endblock %}

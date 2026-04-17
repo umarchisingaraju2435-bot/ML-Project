@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Pay — Order #{{ order.id }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <button onclick="history.back()" class="btn btn-outline btn-sm">← Back</button>
+  <h2>💳 Pay for Order #{{ order.id }}</h2>
+</div>
+
+<div class="payment-page">
+  <div class="payment-summary">
+    <h3>📦 Order Summary</h3>
+    <div class="od-row"><span>Product</span><strong>{{ order.name }}</strong></div>
+    <div class="od-row"><span>Amount</span><strong class="final-price">${{ order.price }}</strong></div>
+    <div class="od-row"><span>Status</span><span class="badge badge-warn">{{ order.status }}</span></div>
+  </div>
+
+  <!-- RAZORPAY BUTTON -->
+  <div class="payment-methods">
+    <h3>Choose Payment</h3>
+
+    <!-- Razorpay -->
+    <div class="pay-method-card">
+      <h4>📱 Pay with Razorpay (UPI / Card / NetBanking)</h4>
+      <p class="muted small">Secure payment powered by Razorpay</p>
+      <button id="rzp-button" class="btn btn-primary btn-large">
+        💳 Pay ${{ order.price }} Now
+      </button>
+    </div>
+
+    <!-- COD -->
+    <div class="pay-method-card mt">
+      <h4>💵 Cash on Delivery</h4>
+      <form method="POST" action="{{ url_for('payment_success') }}">
+        <input type="hidden" name="order_id" value="{{ order.id }}">
+        <input type="hidden" name="razorpay_payment_id" value="COD_{{ order.id }}">
+        <button type="submit" class="btn btn-outline btn-large">✅ Confirm COD</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Razorpay Script -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+var options = {
+  key:         "{{ key_id }}",
+  amount:      {{ amount }},
+  currency:    "USD",
+  name:        "IntelliMarket AI",
+  description: "{{ order.name }}",
+  handler: function(response) {
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = "{{ url_for('payment_success') }}";
+    var fields = {
+      'order_id':              '{{ order.id }}',
+      'razorpay_payment_id':   response.razorpay_payment_id,
+    };
+    for(var k in fields) {
+      var inp = document.createElement('input');
+      inp.type = 'hidden'; inp.name = k; inp.value = fields[k];
+      form.appendChild(inp);
+    }
+    document.body.appendChild(form);
+    form.submit();
+  },
+  prefill: {
+    name:  "{{ current_user }}",
+    email: "{{ session.get('email','') }}"
+  },
+  theme: { color: "#8b5cf6" }
+};
+document.getElementById('rzp-button').onclick = function(e) {
+  e.preventDefault();
+  var rzp = new Razorpay(options);
+  rzp.open();
+};
+</script>
+{% endblock %}

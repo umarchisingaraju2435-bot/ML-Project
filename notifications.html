@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}{{ tr('notifications') }}{% endblock %}
+{% block content %}
+<div class="page-header"><h2>🔔 {{ tr('notifications') }}</h2></div>
+{% if notifications %}
+  {% for n in notifications %}
+  <div class="notif-card notif-{{ n.type }} {% if n.read %}read{% endif %}">
+    <div class="notif-top">
+      <strong>{{ n.title }}</strong>
+      <span class="notif-time">{{ n.time }}</span>
+    </div>
+    <p>{{ n.message }}</p>
+  </div>
+  {% endfor %}
+{% else %}
+  <div class="empty-state">{{ tr('no_notifications') }}</div>
+{% endif %}
+<a href="{{ url_for('dashboard') }}" class="btn btn-outline mt">← Back</a>
+{% endblock %}

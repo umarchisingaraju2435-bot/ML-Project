@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Recommended For You{% endblock %}
+{% block content %}
+<div class="page-header">
+  <button onclick="history.back()" class="btn btn-outline btn-sm">← Back</button>
+  <h2>✨ Recommended For You</h2>
+  <span class="muted small">Based on your purchase history</span>
+</div>
+
+<div class="shop-grid mt">
+{% for p in products %}
+<div class="shop-card">
+  {% if p.get('discount',0) > 0 %}<div class="shop-discount-badge">{{ p.discount }}% OFF</div>{% endif %}
+  <a href="{{ url_for('shop_product', product_id=p.id) }}" class="shop-card-img">
+    {% if p.get('image_url') %}
+    <img src="{{ p.image_url }}" alt="{{ p.name }}" style="width:80px;height:80px;object-fit:cover;border-radius:8px">
+    {% else %}
+    <span class="shop-product-icon">{{ p.image }}</span>
+    {% endif %}
+  </a>
+  <div class="shop-card-body">
+    <a href="{{ url_for('shop_product', product_id=p.id) }}" class="shop-card-name">{{ p.name }}</a>
+    <div class="shop-card-price">
+      {% if p.get('discount',0) > 0 %}
+      <span class="original-price">${{ p.price }}</span>
+      <span class="discounted-price">${{ (p.price*(1-p.discount/100))|round(2) }}</span>
+      {% else %}
+      <span class="discounted-price">${{ p.price }}</span>
+      {% endif %}
+    </div>
+    <div class="shop-card-actions">
+      {% if p.stock > 0 %}
+      <a href="{{ url_for('cart_add', product_id=p.id) }}" class="btn btn-primary btn-sm">🛒 Cart</a>
+      <a href="{{ url_for('wishlist_toggle', product_id=p.id) }}" class="wish-btn">🤍</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% else %}
+<div class="empty-state">No recommendations yet. Start shopping to get personalized suggestions!</div>
+{% endfor %}
+</div>
+{% endblock %}

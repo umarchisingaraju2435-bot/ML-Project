@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Stock Market{% endblock %}
+{% block content %}
+<div class="page-header"><h2>📈 {{ tr('stock_market') }}</h2></div>
+<p class="muted">Live stock analysis with ML-powered alerts for your business strategy.</p>
+
+<div class="stocks-grid">
+{% for s in stocks %}
+<div class="stock-card {{ 'rising' if s.trend=='Rising' else 'falling' if s.trend=='Falling' else 'stable' }}">
+  <div class="stock-top">
+    <span class="ticker">{{ s.ticker }}</span>
+    <span class="badge badge-{{ 'success' if s.trend=='Rising' else 'danger' if s.trend=='Falling' else 'warn' }}">{{ s.trend }}</span>
+  </div>
+  <div class="stock-name">{{ s.name }}</div>
+  <div class="stock-price">${{ s.current }}</div>
+  <div class="stock-change {{ 'text-green' if s.change > 0 else 'text-red' }}">
+    {{ '+' if s.change > 0 else '' }}{{ s.change }} ({{ s.pct }}%)
+  </div>
+  <div class="mini-chart">
+    {% for p in s.prices %}
+    <div class="bar" style="height:{{ ((p - s.prices|min) / ((s.prices|max - s.prices|min) or 1) * 50 + 10)|int }}px"
+         title="${{ p }}"></div>
+    {% endfor %}
+  </div>
+  {% if s.trend == 'Falling' and s.pct|abs > 3 %}
+  <div class="stock-alert">⚠️ Significant drop — review strategy!</div>
+  {% endif %}
+</div>
+{% endfor %}
+</div>
+
+<div class="stock-tip mt">
+  <h3>💡 AI Market Insight</h3>
+  <p>Based on current trends: Rising stocks indicate market confidence. Falling stocks (>3%) trigger automatic seller alerts. Use this data to time your product pricing and promotions.</p>
+</div>
+{% endblock %}

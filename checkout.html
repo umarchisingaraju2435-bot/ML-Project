@@ -1,0 +1,402 @@
+{% extends "base.html" %}
+{% block title %}Checkout — {{ product.name }}{% endblock %}
+{% block content %}
+
+<!-- PROGRESS STEPS (like Amazon/Flipkart) -->
+<div class="checkout-steps">
+  <div class="step {{ 'active' if step==1 else 'done' if step>1 else '' }}">
+    <div class="step-circle">{% if step > 1 %}✓{% else %}1{% endif %}</div>
+    <div class="step-label">Address</div>
+  </div>
+  <div class="step-line {{ 'done' if step>1 else '' }}"></div>
+  <div class="step {{ 'active' if step==2 else 'done' if step>2 else '' }}">
+    <div class="step-circle">{% if step > 2 %}✓{% else %}2{% endif %}</div>
+    <div class="step-label">Order Summary</div>
+  </div>
+  <div class="step-line {{ 'done' if step>2 else '' }}"></div>
+  <div class="step {{ 'active' if step==3 else '' }}">
+    <div class="step-circle">3</div>
+    <div class="step-label">Payment</div>
+  </div>
+</div>
+
+<div class="checkout-layout">
+  <div class="checkout-main">
+
+    <!-- ═══ STEP 1: ADDRESS ═══ -->
+    {% if step == 1 %}
+    <div class="checkout-section">
+      <div class="section-header">
+        <span class="section-num">1</span>
+        <h3>📍 Delivery Address</h3>
+      </div>
+
+      <!-- SAVED ADDRESSES -->
+      {% if addresses %}
+      <div class="saved-addresses">
+        <p class="muted small mb">Select a saved address or add new:</p>
+        {% for a in addresses %}
+        <label class="addr-select-card {{ 'selected' if a.is_default else '' }}" id="addr-{{ a.id }}">
+          <input type="radio" name="selected_addr" value="{{ a.id }}"
+                 {{ 'checked' if a.is_default else '' }}
+                 onchange="selectAddr({{ a.id }})">
+          <div class="addr-card-body">
+            <div class="addr-top">
+              <div>
+                <strong>{{ a.full_name }}</strong>
+                <span class="addr-type-tag">{{ a.get('address_type','Home') }}</span>
+                {% if a.is_default %}<span class="badge badge-success">Default</span>{% endif %}
+              </div>
+              <span class="addr-edit-btn">✏️</span>
+            </div>
+            <p class="addr-line">{{ a.address }}</p>
+            <p class="addr-line">{{ a.city }}, {{ a.state }} — <strong>{{ a.pincode }}</strong></p>
+            {% if a.landmark %}<p class="addr-line muted small">📌 {{ a.landmark }}</p>{% endif %}
+            <p class="addr-line">📞 <strong>{{ a.phone }}</strong></p>
+          </div>
+        </label>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- ADD NEW ADDRESS TOGGLE -->
+      <div class="add-new-addr-toggle" onclick="toggleNewAddr()">
+        <span class="plus-icon">➕</span>
+        <strong>Add a new address</strong>
+      </div>
+
+      <!-- NEW ADDRESS FORM -->
+      <div id="newAddrForm" style="{{ '' if not addresses else 'display:none' }}" class="new-addr-form">
+        <form method="POST" action="{{ url_for('checkout', product_id=product.id) }}">
+          <input type="hidden" name="step" value="2">
+          <input type="hidden" name="addr_id" value="new">
+
+          <div class="form-row">
+            <div class="form-group flex1">
+              <label>Full Name *</label>
+              <input type="text" name="full_name" required placeholder="Enter full name"
+                     value="{{ session.get('name','') }}">
+            </div>
+            <div class="form-group flex1">
+              <label>Mobile Number *</label>
+              <div class="phone-input-wrap">
+                <span class="phone-prefix">+91</span>
+                <input type="tel" name="phone" required placeholder="10-digit mobile number"
+                       maxlength="10" pattern="[0-9]{10}">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Pincode *</label>
+            <div style="display:flex;gap:.8rem;align-items:center">
+              <input type="text" name="pincode" id="pincodeInput" required
+                     placeholder="6-digit pincode" maxlength="6" pattern="[0-9]{6}"
+                     style="width:160px" oninput="fetchPincode(this.value)">
+              <span id="pincode-status" class="muted small"></span>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex1">
+              <label>State *</label>
+              <input type="text" name="state" id="stateInput" required placeholder="State">
+            </div>
+            <div class="form-group flex1">
+              <label>City / District *</label>
+              <input type="text" name="city" id="cityInput" required placeholder="City">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>House No, Building, Street, Area *</label>
+            <textarea name="address" rows="2" required
+              placeholder="e.g. Flat 4B, Sunrise Apartments, MG Road"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Landmark (Optional)</label>
+            <input type="text" name="landmark" placeholder="e.g. Near Apollo Hospital, Opposite Big Bazaar">
+          </div>
+
+          <div class="form-group">
+            <label>Address Type</label>
+            <div class="addr-type-select">
+              <label class="addr-type-opt">
+                <input type="radio" name="address_type" value="Home" checked>
+                <span>🏠 Home</span>
+              </label>
+              <label class="addr-type-opt">
+                <input type="radio" name="address_type" value="Work">
+                <span>💼 Work</span>
+              </label>
+              <label class="addr-type-opt">
+                <input type="radio" name="address_type" value="Other">
+                <span>📍 Other</span>
+              </label>
+            </div>
+          </div>
+
+          <label class="checkbox-label">
+            <input type="checkbox" name="save_address" value="1" checked>
+            Save this address for future orders
+          </label>
+
+          <button type="submit" class="btn btn-primary btn-full btn-large mt">
+            Deliver to this address →
+          </button>
+        </form>
+      </div>
+
+      <!-- USE SAVED ADDRESS BUTTON -->
+      {% if addresses %}
+      <form method="POST" action="{{ url_for('checkout', product_id=product.id) }}" id="savedAddrForm">
+        <input type="hidden" name="step" value="2">
+        <input type="hidden" name="addr_id" id="selectedAddrId"
+               value="{{ addresses[0].id if addresses else '' }}">
+        <button type="submit" class="btn btn-primary btn-full btn-large mt">
+          Deliver to selected address →
+        </button>
+      </form>
+      {% endif %}
+    </div>
+
+    <!-- ═══ STEP 2: ORDER SUMMARY ═══ -->
+    {% elif step == 2 %}
+    <div class="checkout-section">
+      <div class="section-header">
+        <span class="section-num">✓</span>
+        <h3>📍 Delivering to</h3>
+        <a href="{{ url_for('checkout', product_id=product.id) }}" class="change-link">Change</a>
+      </div>
+      <div class="confirmed-addr">
+        <strong>{{ address.full_name }}</strong> &nbsp;
+        <span class="addr-type-tag">{{ address.get('address_type','Home') }}</span><br>
+        {{ address.address }}, {{ address.city }}, {{ address.state }} — {{ address.pincode }}<br>
+        {% if address.get('landmark') %}📌 {{ address.landmark }}<br>{% endif %}
+        📞 {{ address.phone }}
+      </div>
+    </div>
+
+    <div class="checkout-section">
+      <div class="section-header">
+        <span class="section-num">2</span>
+        <h3>📦 Order Summary</h3>
+      </div>
+      <div class="order-summary-item">
+        <div class="osi-img">
+          {% if product.get('image_url') %}
+          <img src="{{ product.image_url }}" alt="{{ product.name }}"
+               style="width:80px;height:80px;object-fit:cover;border-radius:8px">
+          {% else %}
+          <span style="font-size:3rem">{{ product.image }}</span>
+          {% endif %}
+        </div>
+        <div class="osi-info">
+          <h4>{{ product.name }}</h4>
+          <p class="muted small">{{ product.category }}</p>
+          <p class="muted small">Seller: {{ seller_name }}</p>
+          {% if product.get('discount',0) > 0 %}
+          <p><span class="original-price">${{ product.price }}</span>
+          <span class="discounted-price">${{ final_price }}</span>
+          <span class="save-tag">{{ product.discount }}% off</span></p>
+          {% else %}
+          <p class="discounted-price">${{ final_price }}</p>
+          {% endif %}
+          <p class="delivery-tag">🚚 FREE Delivery</p>
+        </div>
+      </div>
+
+      <form method="POST" action="{{ url_for('checkout', product_id=product.id) }}">
+        <input type="hidden" name="step" value="3">
+        <input type="hidden" name="addr_data" value="{{ addr_json }}">
+        <button type="submit" class="btn btn-primary btn-full btn-large mt">
+          Continue to Payment →
+        </button>
+      </form>
+    </div>
+
+    <!-- ═══ STEP 3: PAYMENT ═══ -->
+    {% elif step == 3 %}
+    <div class="checkout-section">
+      <div class="section-header">
+        <span class="section-num">✓</span>
+        <h3>📍 Delivering to</h3>
+        <a href="{{ url_for('checkout', product_id=product.id) }}" class="change-link">Change</a>
+      </div>
+      <div class="confirmed-addr">
+        <strong>{{ address.full_name }}</strong> — {{ address.city }}, {{ address.state }}
+        &nbsp;📞 {{ address.phone }}
+      </div>
+    </div>
+
+    <div class="checkout-section">
+      <div class="section-header">
+        <span class="section-num">3</span>
+        <h3>💳 Payment Method</h3>
+      </div>
+
+      <form method="POST" action="{{ url_for('checkout', product_id=product.id) }}">
+        <input type="hidden" name="step" value="confirm">
+        <input type="hidden" name="addr_data" value="{{ addr_json }}">
+
+        <div class="payment-list">
+
+          <!-- UPI -->
+          <label class="payment-list-item">
+            <input type="radio" name="payment" value="UPI" checked>
+            <div class="pli-body">
+              <div class="pli-top">
+                <span class="pli-icon">📱</span>
+                <strong>UPI</strong>
+              </div>
+              <p class="muted small">GPay, PhonePe, Paytm, BHIM UPI</p>
+              <div class="upi-input" id="upiInput">
+                <input type="text" name="upi_id" placeholder="Enter UPI ID (e.g. name@upi)"
+                       style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:.5rem;color:var(--text);margin-top:.5rem">
+              </div>
+            </div>
+          </label>
+
+          <!-- CARD -->
+          <label class="payment-list-item">
+            <input type="radio" name="payment" value="Card">
+            <div class="pli-body">
+              <div class="pli-top">
+                <span class="pli-icon">💳</span>
+                <strong>Credit / Debit Card</strong>
+              </div>
+              <p class="muted small">Visa, Mastercard, RuPay</p>
+            </div>
+          </label>
+
+          <!-- NET BANKING -->
+          <label class="payment-list-item">
+            <input type="radio" name="payment" value="NetBanking">
+            <div class="pli-body">
+              <div class="pli-top">
+                <span class="pli-icon">🏦</span>
+                <strong>Net Banking</strong>
+              </div>
+              <p class="muted small">All major banks supported</p>
+            </div>
+          </label>
+
+          <!-- EMI -->
+          <label class="payment-list-item">
+            <input type="radio" name="payment" value="EMI">
+            <div class="pli-body">
+              <div class="pli-top">
+                <span class="pli-icon">📅</span>
+                <strong>EMI</strong>
+              </div>
+              <p class="muted small">No-cost EMI available on select cards</p>
+            </div>
+          </label>
+
+          <!-- COD -->
+          <label class="payment-list-item">
+            <input type="radio" name="payment" value="COD">
+            <div class="pli-body">
+              <div class="pli-top">
+                <span class="pli-icon">💵</span>
+                <strong>Cash on Delivery</strong>
+              </div>
+              <p class="muted small">Pay when your order arrives</p>
+            </div>
+          </label>
+
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full btn-large mt">
+          🛒 Place Order — ${{ final_price }}
+        </button>
+        <p class="muted small" style="text-align:center;margin-top:.5rem">
+          🔒 Safe and Secure Payments. Easy returns. 100% Authentic products.
+        </p>
+      </form>
+    </div>
+    {% endif %}
+
+  </div>
+
+  <!-- RIGHT: PRICE DETAILS (always visible) -->
+  <div class="checkout-summary">
+    <h3>💰 Price Details</h3>
+    <div class="summary-product">
+      {% if product.get('image_url') %}
+      <img src="{{ product.image_url }}" alt="{{ product.name }}"
+           style="width:50px;height:50px;object-fit:cover;border-radius:6px">
+      {% else %}
+      <span style="font-size:2rem">{{ product.image }}</span>
+      {% endif %}
+      <div>
+        <strong>{{ product.name[:30] }}</strong>
+        <p class="muted small">{{ product.category }}</p>
+      </div>
+    </div>
+    <div class="price-details-box">
+      <div class="summary-price-row">
+        <span>Price (1 item)</span>
+        <span>${{ product.price }}</span>
+      </div>
+      {% if product.get('discount',0) > 0 %}
+      <div class="summary-price-row text-green">
+        <span>Discount ({{ product.discount }}%)</span>
+        <span>-${{ (product.price * product.discount / 100)|round(2) }}</span>
+      </div>
+      {% endif %}
+      <div class="summary-price-row text-green">
+        <span>Delivery Charges</span>
+        <span>FREE 🎉</span>
+      </div>
+      <div class="price-divider"></div>
+      <div class="summary-total">
+        <span>Total Amount</span>
+        <span>${{ final_price }}</span>
+      </div>
+      {% if product.get('discount',0) > 0 %}
+      <div class="savings-tag">
+        🎉 You save ${{ (product.price * product.discount / 100)|round(2) }} on this order!
+      </div>
+      {% endif %}
+    </div>
+    <div class="secure-badge">
+      <span>🔒</span>
+      <span class="muted small">Safe and Secure Payments</span>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleNewAddr() {
+  var f = document.getElementById('newAddrForm');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
+function selectAddr(id) {
+  document.getElementById('selectedAddrId').value = id;
+  document.querySelectorAll('.addr-select-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('addr-' + id).classList.add('selected');
+}
+// Auto-fill city/state from pincode
+function fetchPincode(pin) {
+  if(pin.length === 6) {
+    document.getElementById('pincode-status').textContent = '⏳ Fetching...';
+    fetch('https://api.postalpincode.in/pincode/' + pin)
+      .then(r => r.json())
+      .then(data => {
+        if(data[0].Status === 'Success') {
+          var p = data[0].PostOffice[0];
+          document.getElementById('cityInput').value  = p.District;
+          document.getElementById('stateInput').value = p.State;
+          document.getElementById('pincode-status').textContent = '✅ ' + p.District + ', ' + p.State;
+        } else {
+          document.getElementById('pincode-status').textContent = '❌ Invalid pincode';
+        }
+      }).catch(() => {
+        document.getElementById('pincode-status').textContent = '';
+      });
+  }
+}
+</script>
+{% endblock %}

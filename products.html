@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% block title %}My Products{% endblock %}
+{% block content %}
+<div class="page-header">
+  <button onclick="history.back()" class="btn btn-outline btn-sm">← Back</button>
+  <h2>📦 My Products</h2>
+  <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+    <a href="{{ url_for('seller_add_product') }}"  class="btn btn-primary">➕ Add One</a>
+    <a href="{{ url_for('seller_bulk_add') }}"     class="btn btn-primary">📋 Add Multiple</a>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats-row">
+  <div class="stat-card"><div class="stat-num">{{ products|length }}</div><div>Total Products</div></div>
+  <div class="stat-card"><div class="stat-num">{{ orders|length }}</div><div>Total Orders</div></div>
+  <div class="stat-card"><div class="stat-num">${{ total_revenue }}</div><div>Revenue</div></div>
+  <div class="stat-card"><div class="stat-num">{{ products|selectattr('stock','lt',10)|list|length }}</div><div>⚠️ Low Stock</div></div>
+</div>
+
+<!-- CATEGORY FILTER -->
+{% set categories = products|map(attribute='category')|unique|list %}
+<div class="cat-filter-bar">
+  <button class="cat-btn active" onclick="filterCat('all',this)">All ({{ products|length }})</button>
+  {% for cat in categories %}
+  <button class="cat-btn" onclick="filterCat('{{ cat }}',this)">{{ cat }}</button>
+  {% endfor %}
+</div>
+
+<!-- PRODUCTS GRID -->
+{% if products %}
+<div class="seller-products-grid" id="productsGrid">
+{% for p in products %}
+{% set p_reviews = product_reviews | selectattr('product_id','eq',p.id) | list %}
+<div class="seller-prod-card" data-category="{{ p.category }}">
+  <div class="spc-header">
+    <span class="spc-icon">{{ p.image }}</span>
+    <div class="spc-badges">
+      {% if p.stock < 10 %}<span class="badge badge-danger">⚠️ Low</span>{% endif %}
+      {% if p.get('discount',0) > 0 %}<span class="badge badge-warn">{{ p.discount }}% OFF</span>{% endif %}
+    </div>
+  </div>
+  <h4 class="spc-name">{{ p.name }}</h4>
+  <span class="cat-tag">{{ p.category }}</span>
+  <p class="spc-desc">{{ p.description[:80] }}...</p>
+  <div class="spc-price-row">
+    <span class="price">${{ p.price }}</span>
+    <span class="muted small">⭐ {{ p_reviews|length }} reviews</span>
+  </div>
+
+  <!-- INLINE STOCK UPDATE -->
+  <form method="POST" action="{{ url_for('seller_update_stock', product_id=p.id) }}" class="spc-stock-form">
+    <label class="muted small">Stock:</label>
+    <input type="number" name="stock" value="{{ p.stock }}" min="0" class="stock-input">
+    <button type="submit" class="btn btn-sm btn-outline">📦 Update</button>
+  </form>
+
+  <!-- ACTIONS -->
+  <div class="spc-actions">
+    <a href="{{ url_for('seller_view_product', product_id=p.id) }}"      class="btn btn-sm btn-primary">👁 View</a>
+    <a href="{{ url_for('seller_edit_product', product_id=p.id) }}"      class="btn btn-sm btn-outline">✏️ Edit</a>
+    <a href="{{ url_for('seller_duplicate_product', product_id=p.id) }}" class="btn btn-sm btn-outline">📋 Copy</a>
+    <a href="{{ url_for('seller_launch_product', product_id=p.id) }}"    class="btn btn-sm btn-outline"
+       onclick="return confirm('Send launch notification to followers?')">🚀 Launch</a>
+    <a href="{{ url_for('seller_delete_product', product_id=p.id) }}"    class="btn btn-sm btn-danger"
+       onclick="return confirm('Delete this product?')">🗑</a>
+  </div>
+</div>
+{% endfor %}
+</div>
+
+<!-- TABLE VIEW (toggle) -->
+<div id="tableView" style="display:none">
+<table class="data-table mt">
+  <thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Reviews</th><th>Actions</th></tr></thead>
+  <tbody>
+  {% for p in products %}
+  {% set p_reviews = product_reviews | selectattr('product_id','eq',p.id) | list %}
+  <tr class="{{ 'low-stock-row' if p.stock < 10 else '' }}">
+    <td><span class="prod-icon">{{ p.image }}</span> <strong>{{ p.name }}</strong></td>
+    <td><span class="cat-tag">{{ p.category }}</span></td>
+    <td><strong class="price">${{ p.price }}</strong></td>
+    <td>
+      <form method="POST" action="{{ url_for('seller_update_stock', product_id=p.id) }}" class="stock-form">
+        <input type="number" name="stock" value="{{ p.stock }}" min="0" class="stock-input">
+        <button type="submit" class="btn btn-sm btn-outline">Update</button>
+      </form>
+    </td>
+    <td>⭐ {{ p_reviews|length }}</td>
+    <td>
+      <a href="{{ url_for('seller_view_product', product_id=p.id) }}" class="btn btn-sm btn-primary">👁</a>
+      <a href="{{ url_for('seller_edit_product', product_id=p.id) }}" class="btn btn-sm btn-outline">✏️</a>
+      <a href="{{ url_for('seller_duplicate_product', product_id=p.id) }}" class="btn btn-sm btn-outline">📋</a>
+      <a href="{{ url_for('seller_delete_product', product_id=p.id) }}" class="btn btn-sm btn-danger"
+         onclick="return confirm('Delete?')">🗑</a>
+    </td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+
+<div style="margin-top:1rem;display:flex;gap:.5rem">
+  <button onclick="toggleView()" class="btn btn-outline btn-sm" id="viewToggleBtn">📋 Table View</button>
+</div>
+
+{% else %}
+<div class="empty-state">
+  No products yet.
+  <a href="{{ url_for('seller_add_product') }}" class="btn btn-primary mt">➕ Add Product</a>
+  <a href="{{ url_for('seller_bulk_add') }}"    class="btn btn-outline mt">📋 Add Multiple</a>
+</div>
+{% endif %}
+
+<!-- RECENT ORDERS -->
+<h3 class="mt">🛒 Recent Orders</h3>
+{% if orders %}
+<table class="data-table">
+  <thead><tr><th>Product</th><th>Customer</th><th>Price</th><th>Status</th><th>Date</th><th>Update</th></tr></thead>
+  <tbody>
+  {% for o in orders[:10] %}
+  <tr>
+    <td>{{ o.name }}</td>
+    <td>{{ o.get('address',{}).get('full_name','N/A') }}</td>
+    <td>${{ o.price }}</td>
+    <td><span class="badge badge-{{ 'success' if o.status=='Delivered' else 'warn' if o.status=='Processing' else 'info' }}">{{ o.status }}</span></td>
+    <td>{{ o.date }}</td>
+    <td>
+      <form method="POST" action="{{ url_for('seller_update_order', order_id=o.id) }}" style="display:flex;gap:.3rem">
+        <select name="status" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:.3rem;color:var(--text);font-size:.8rem">
+          <option {{ 'selected' if o.status=='Confirmed'  else '' }}>Confirmed</option>
+          <option {{ 'selected' if o.status=='Processing' else '' }}>Processing</option>
+          <option {{ 'selected' if o.status=='Shipped'    else '' }}>Shipped</option>
+          <option {{ 'selected' if o.status=='Delivered'  else '' }}>Delivered</option>
+          <option {{ 'selected' if o.status=='Cancelled'  else '' }}>Cancelled</option>
+        </select>
+        <button type="submit" class="btn btn-sm btn-primary">Update</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="muted">No orders yet.</p>
+{% endif %}
+
+<script>
+function filterCat(cat, btn) {
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.seller-prod-card').forEach(card => {
+    card.style.display = (cat === 'all' || card.dataset.category === cat) ? 'flex' : 'none';
+  });
+}
+let tableMode = false;
+function toggleView() {
+  tableMode = !tableMode;
+  document.getElementById('productsGrid').style.display = tableMode ? 'none' : 'grid';
+  document.getElementById('tableView').style.display    = tableMode ? 'block' : 'none';
+  document.getElementById('viewToggleBtn').textContent  = tableMode ? '🔲 Grid View' : '📋 Table View';
+}
+</script>
+{% endblock %}

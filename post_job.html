@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Post a Job{% endblock %}
+{% block content %}
+<div class="page-header"><h2>➕ {{ tr('post_job') }}</h2></div>
+<div class="form-card">
+  <form method="POST">
+    <div class="form-group">
+      <label>Job Title</label>
+      <input type="text" name="title" required placeholder="e.g. ML Engineer">
+    </div>
+    <div class="form-group">
+      <label>Company Name</label>
+      <input type="text" name="company" required placeholder="e.g. TechCorp">
+    </div>
+    <div class="form-row">
+      <div class="form-group flex1">
+        <label>Salary</label>
+        <input type="text" name="salary" placeholder="e.g. $3000/mo">
+      </div>
+      <div class="form-group flex1">
+        <label>Location</label>
+        <input type="text" name="location" placeholder="e.g. Remote / Dubai">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Job Description & Required Skills</label>
+      <textarea name="description" rows="6" required
+        placeholder="Describe the role, required skills, experience..."></textarea>
+    </div>
+    <div class="form-btns">
+      <button type="submit" class="btn btn-primary">📢 Post Job</button>
+      <a href="{{ url_for('seller_jobs') }}" class="btn btn-outline">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
